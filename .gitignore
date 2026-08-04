@@ -1,0 +1,35 @@
+# Dependencies & Environments
+venv/
+ENV/
+env/
+.venv/
+node_modules/
+sansons-frontend/node_modules/
+.next/
+sansons-frontend/.next/
+out/
+sansons-frontend/out/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+sansons-frontend/.env
+sansons-frontend/.env.local
+
+# Python & Django Caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+*.log
+audit.log
+media/
+
+# System Files & IDE Settings
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

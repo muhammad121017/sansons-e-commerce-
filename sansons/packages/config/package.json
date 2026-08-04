@@ -1,0 +1,12 @@
+{
+  "name": "@sansons/config",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-next": "15.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.34.1",
+    "typescript": "^5.4.5"
+  }
+}
