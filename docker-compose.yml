@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. PostgreSQL Database Service
+  # 1. PostgreSQL Database Engine
   postgres:
     image: postgres:15-alpine
     container_name: sansons_db
@@ -20,11 +20,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Django REST API Backend Service
+  # 2. Django REST API Backend
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile
     container_name: sansons_backend
     restart: always
     environment:
@@ -44,7 +44,7 @@ services:
     volumes:
       - media_volume:/app/media
 
-  # 3. Next.js Storefront & Admin Portal Frontend Service (Exposed on Port 7989)
+  # 3. Next.js Storefront & Admin Portal (Port 7989)
   frontend:
     build:
       context: ./sansons-frontend
