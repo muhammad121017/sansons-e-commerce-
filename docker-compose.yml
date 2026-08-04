@@ -1,9 +1,64 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:alpine
-    container_name: sansons_redis
-    ports:
-      - "6379:6379"
+  # 1. PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: sansons_db
     restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sansons_db}
+      POSTGRES_USER: ${POSTGRES_USER:-sansons_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sansons_password_123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sansons_user} -d ${POSTGRES_DB:-sansons_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Django REST API Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: sansons_backend
+    restart: always
+    environment:
+      DB_NAME: ${POSTGRES_DB:-sansons_db}
+      DB_USER: ${POSTGRES_USER:-sansons_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-sansons_password_123}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-sansons-vps-production-key-7989}
+      DEBUG: "False"
+      ALLOWED_HOSTS: "*"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - media_volume:/app/media
+
+  # 3. Next.js Storefront & Admin Portal Frontend Service (Exposed on Port 7989)
+  frontend:
+    build:
+      context: ./sansons-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-60165557205-2avhk0lr636jviob6rb2hri0cijnka7r.apps.googleusercontent.com}
+    container_name: sansons_frontend
+    restart: always
+    ports:
+      - "7989:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  media_volume:
