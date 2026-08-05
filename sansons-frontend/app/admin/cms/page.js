@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { heroSlides as initialHero, announcementBar as initialAnnouncement, faq as initialFaq, brandStory as initialStory } from "@/lib/data/cms";
 import { useToast } from "@/lib/context/ToastContext";
 import api from "@/lib/api";
+import { formatCurrency } from "@/lib/utils";
 
 const DEFAULT_HOMEPAGE_SECTIONS = [
   { id: "hero", label: "Hero Banner & Carousel", visible: true, order: 1 },
