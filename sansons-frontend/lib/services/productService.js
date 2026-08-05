@@ -212,10 +212,16 @@ export async function fetchBestSellers() {
     if (Array.isArray(results) && results.length > 0) {
       return results.map(mapProduct);
     }
+    // Fallback: If no products have is_deal_of_the_week=true, return live DB catalog products
+    const catalogRes = await api.get('products/catalog/');
+    const catalogResults = catalogRes.data.results || catalogRes.data;
+    if (Array.isArray(catalogResults) && catalogResults.length > 0) {
+      return catalogResults.map(mapProduct);
+    }
   } catch (err) {
-    console.warn("Failed to fetch live best sellers, returning mock.", err);
+    console.warn("Failed to fetch live best sellers.", err);
   }
-  return mockProducts.filter((p) => p.isBestSeller);
+  return [];
 }
 
 export async function fetchNewArrivals() {
@@ -226,9 +232,9 @@ export async function fetchNewArrivals() {
       return results.map(mapProduct);
     }
   } catch (err) {
-    console.warn("Failed to fetch live new arrivals, returning mock.", err);
+    console.warn("Failed to fetch live new arrivals.", err);
   }
-  return mockProducts.filter((p) => p.isNew);
+  return [];
 }
 
 export async function fetchProductsByCategory(categorySlug) {
