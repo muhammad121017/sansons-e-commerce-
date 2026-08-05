@@ -204,4 +204,4 @@ CSRF_TRUSTED_ORIGINS = [
 # Trust reverse proxy headers from Next.js / Nginx
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
-APPEND_SLASH = False
+APPEND_SLASH = True
