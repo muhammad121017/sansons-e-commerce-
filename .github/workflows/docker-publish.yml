@@ -7,8 +7,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository }}/backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}/frontend
+  BACKEND_IMAGE: ghcr.io/muhammad121017/sansons-backend
+  FRONTEND_IMAGE: ghcr.io/muhammad121017/sansons-frontend
 
 jobs:
   build-and-push:

@@ -31,7 +31,7 @@ services:
 
   # 2. Django REST API Backend (Pre-built image from GHCR)
   backend:
-    image: ghcr.io/muhammad121017/sansons-e-commerce-/backend:latest
+    image: ghcr.io/muhammad121017/sansons-backend:latest
     container_name: sansons_backend
     restart: always
     environment:
@@ -56,7 +56,7 @@ services:
 
   # 3. Next.js Storefront & Admin Portal (Pre-built image from GHCR)
   frontend:
-    image: ghcr.io/muhammad121017/sansons-e-commerce-/frontend:latest
+    image: ghcr.io/muhammad121017/sansons-frontend:latest
     container_name: sansons_frontend
     restart: always
     ports:
