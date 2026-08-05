@@ -13,6 +13,9 @@ const getBaseUrl = () => {
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://127.0.0.1:8000/api/';
     }
+    if (host === '72.61.151.29') {
+      return 'http://72.61.151.29:8000/api/';
+    }
   }
   return '/api/';
 };
