@@ -8,7 +8,15 @@ function mapProduct(p) {
   // Format image/s
   let imageUrls = [];
   if (Array.isArray(p.images) && p.images.length > 0) {
-    imageUrls = p.images.map(img => typeof img === 'string' ? img : (img.original_file || img.thumbnail || ''));
+    imageUrls = p.images.map(img => {
+      let url = typeof img === 'string' ? img : (img.original_file || img.thumbnail || '');
+      if (typeof url === 'string' && (url.includes("127.0.0.1") || url.includes("localhost"))) {
+        if (url.includes("/media/")) {
+          url = "/media/" + url.split("/media/")[1];
+        }
+      }
+      return url;
+    }).filter(Boolean);
   }
   if (imageUrls.length === 0) {
     imageUrls = ['https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=900&q=80']; // Fallback

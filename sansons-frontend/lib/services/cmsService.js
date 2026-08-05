@@ -102,21 +102,39 @@ export const getCategories = async () => {
         }
 
         const categoryImages = {
-          "electronics": "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=800",
-          "fashion-apparel": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800",
-          "sports-outdoors": "https://images.unsplash.com/photo-1517649763962-0c6232661a0b?w=800",
-          "luxury-watches": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=800",
-          "updated-luxury-watches": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=800",
+          "timepieces": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=900&q=80",
+          "bags": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=900&q=80",
+          "footwear": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=900&q=80",
+          "jewelry": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900&q=80",
+          "apparel": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=900&q=80",
+          "electronics": "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=900&q=80",
+          "fashion-apparel": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&q=80",
+          "sports-outdoors": "https://images.unsplash.com/photo-1517649763962-0c6232661a0b?w=900&q=80",
+          "luxury-watches": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=900&q=80",
+          "updated-luxury-watches": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=900&q=80",
         };
 
-        return filtered.map((c) => ({
-          id: c.id,
-          name: c.name,
-          slug: c.slug,
-          image: c.image || categoryImages[c.slug] || "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=800",
-          productCount: c.count || 0,
-          visible: c.status !== 'hidden',
-        }));
+        return filtered.map((c) => {
+          let img = c.image;
+          if (typeof img === 'string' && (img.includes("127.0.0.1") || img.includes("localhost"))) {
+            if (img.includes("/media/")) {
+              img = "/media/" + img.split("/media/")[1];
+            } else {
+              img = null;
+            }
+          }
+          if (!img) {
+            img = categoryImages[c.slug] || "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=900&q=80";
+          }
+          return {
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            image: img,
+            productCount: c.count || 0,
+            visible: c.status !== 'hidden',
+          };
+        });
       }
     }
   } catch (err) {
