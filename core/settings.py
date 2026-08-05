@@ -1,13 +1,14 @@
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-q&fz1#eh3f#l1*e&9+83v8_l7@^m64uq0!3i2=yc8*(e5$@=)$'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-q&fz1#eh3f#l1*e&9+83v8_l7@^m64uq0!3i2=yc8*(e5$@=)$')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['*'] # Opened up for local testing with frontend
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
@@ -59,15 +61,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database Configuration
+# Database Configuration — reads from env vars in Docker, falls back to local dev values
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'sansons_db',
-        'USER': 'postgres',
-        'PASSWORD': '1122',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'sansons_db'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '1122'),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -110,6 +112,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # REST Framework, Throttling, and JWT Configuration
 REST_FRAMEWORK = {
@@ -169,7 +172,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 from corsheaders.defaults import default_headers
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS: allow all in dev, restrict in production
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'idempotency-key',
     'authorization',
@@ -179,4 +183,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-]
+]
+
+# Add your production domain in env, e.g. CORS_EXTRA_ORIGINS=https://sansons.pk,https://www.sansons.pk
+_extra = os.environ.get('CORS_EXTRA_ORIGINS', '')
+if _extra:
+    CORS_ALLOWED_ORIGINS += [o.strip() for o in _extra.split(',') if o.strip()]
+
+# CSRF trusted origins for reverse-proxy deployments
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000').split(',')

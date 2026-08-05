@@ -1,0 +1,18 @@
+# Frontend .dockerignore — keep Docker build context lean
+.git
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+AGENTS.md
+CLAUDE.md
+DESIGN_SYSTEM.md
+README.md

@@ -1,0 +1,33 @@
+# Backend .dockerignore — prevent bloat in Docker build context
+.git
+.gitignore
+venv/
+ENV/
+.venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+audit.log
+media/
+staticfiles/
+
+# Frontend (built separately)
+sansons-frontend/node_modules/
+sansons-frontend/.next/
+sansons-frontend/out/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.yaml
+docker-compose.yml
+Dockerfile
+Dockerfile.backend
+.env
+.env.example
+.env.local
