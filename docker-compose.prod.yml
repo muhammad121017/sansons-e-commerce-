@@ -1,0 +1,77 @@
+# ============================================================
+# SANSONS E-COMMERCE — Production Docker Compose (Standalone)
+# ============================================================
+# Deploy with just this file + .env — no source code needed.
+#
+# Quick deploy:
+#   curl -o docker-compose.prod.yml https://raw.githubusercontent.com/muhammad121017/sansons-e-commerce-/main/docker-compose.prod.yml
+#   curl -o .env https://raw.githubusercontent.com/muhammad121017/sansons-e-commerce-/main/.env.example
+#   nano .env   # fill in real secrets
+#   docker compose -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database Engine (Internal only)
+  postgres:
+    image: postgres:15-alpine
+    container_name: sansons_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Django REST API Backend (Pre-built image from GHCR)
+  backend:
+    image: ghcr.io/muhammad121017/sansons-e-commerce-/backend:latest
+    container_name: sansons_backend
+    restart: always
+    environment:
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: "False"
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      CORS_EXTRA_ORIGINS: ${CORS_EXTRA_ORIGINS:-}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - media_volume:/app/media
+    networks:
+      - default
+      - proxy_net
+
+  # 3. Next.js Storefront & Admin Portal (Pre-built image from GHCR)
+  frontend:
+    image: ghcr.io/muhammad121017/sansons-e-commerce-/frontend:latest
+    container_name: sansons_frontend
+    restart: always
+    ports:
+      - "7989:3000"
+    depends_on:
+      - backend
+    networks:
+      - default
+      - proxy_net
+
+volumes:
+  postgres_data:
+  media_volume:
+
+networks:
+  proxy_net:
+    external: true
+    name: ${PROXY_NETWORK:-reverse-proxy_default}
