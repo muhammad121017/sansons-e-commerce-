@@ -172,8 +172,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 from corsheaders.defaults import default_headers
 
-# CORS: allow all in dev, restrict in production
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+# CORS: allow all origins to prevent cross-domain/proxy issues
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'idempotency-key',
     'authorization',
@@ -183,12 +183,25 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:7989",
+    "http://127.0.0.1:7989",
+    "http://72.61.151.29:7989",
+    "http://72.61.151.29",
 ]
 
-# Add your production domain in env, e.g. CORS_EXTRA_ORIGINS=https://sansons.pk,https://www.sansons.pk
 _extra = os.environ.get('CORS_EXTRA_ORIGINS', '')
 if _extra:
     CORS_ALLOWED_ORIGINS += [o.strip() for o in _extra.split(',') if o.strip()]
 
-# CSRF trusted origins for reverse-proxy deployments
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000').split(',')
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:7989",
+    "http://127.0.0.1:7989",
+    "http://72.61.151.29:7989",
+    "http://72.61.151.29",
+]
+# Trust reverse proxy headers from Next.js / Nginx
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

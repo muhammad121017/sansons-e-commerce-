@@ -1,6 +1,23 @@
 import axios from 'axios';
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || '/api/';
+// Smart API Base URL resolver:
+// 1. Uses NEXT_PUBLIC_API_URL if explicitly configured in environment
+// 2. On local machine (localhost / 127.0.0.1), connects directly to Django backend at http://127.0.0.1:8000/api/
+// 3. On VPS production, uses relative '/api/' which Next.js proxies to backend container
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== '/api/') {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api/';
+    }
+  }
+  return '/api/';
+};
+
+const BASE = getBaseUrl();
 
 const api = axios.create({
   baseURL: BASE,
@@ -64,7 +81,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post(`${BASE}auth/login/refresh/`, {
+        const refreshUrl = BASE.endsWith('/') ? `${BASE}auth/login/refresh/` : `${BASE}/auth/login/refresh/`;
+        const { data } = await axios.post(refreshUrl, {
           refresh: refreshToken,
         });
 
