@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Mail, User as UserIcon, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
@@ -8,7 +8,7 @@ import Button from "@/components/ui/Button";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useToast } from "@/lib/context/ToastContext";
 
-export default function StorefrontAuthPage() {
+function StorefrontAuthPageInner() {
   const searchParams = useSearchParams();
   const initialMode = searchParams.get("mode") === "register" ? "register" : "login";
   const redirectTarget = searchParams.get("redirect") || "/account";
@@ -375,5 +375,13 @@ export default function StorefrontAuthPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function StorefrontAuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[75vh] flex items-center justify-center text-sm text-ink2">Loading...</div>}>
+      <StorefrontAuthPageInner />
+    </Suspense>
   );
 }

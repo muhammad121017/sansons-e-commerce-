@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function RegisterRedirectPage() {
+function RegisterRedirectInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -18,3 +18,12 @@ export default function RegisterRedirectPage() {
     </div>
   );
 }
+
+export default function RegisterRedirectPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[50vh] flex items-center justify-center text-sm text-ink2">Loading sign up page...</div>}>
+      <RegisterRedirectInner />
+    </Suspense>
+  );
+}
+
