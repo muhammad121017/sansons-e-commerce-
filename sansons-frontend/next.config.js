@@ -14,11 +14,11 @@ const nextConfig = {
       beforeFiles: [
         {
           source: "/api/:path*",
-          destination: "http://backend:8000/api/:path*",
+          destination: "http://sansons_backend:8000/api/:path*",
         },
         {
           source: "/media/:path*",
-          destination: "http://backend:8000/media/:path*",
+          destination: "http://sansons_backend:8000/media/:path*",
         },
       ],
     };
