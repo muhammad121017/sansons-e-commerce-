@@ -10,24 +10,18 @@ const nextConfig = {
   },
   eslint: { ignoreDuringBuilds: true },
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://backend:8000/api/:path*",
-      },
-      {
-        source: "/api/:path*/",
-        destination: "http://backend:8000/api/:path*/",
-      },
-      {
-        source: "/media/:path*",
-        destination: "http://backend:8000/media/:path*",
-      },
-      {
-        source: "/media/:path*/",
-        destination: "http://backend:8000/media/:path*/",
-      },
-    ];
+    return {
+      beforeFiles: [
+        {
+          source: "/api/:path*",
+          destination: "http://backend:8000/api/:path*",
+        },
+        {
+          source: "/media/:path*",
+          destination: "http://backend:8000/media/:path*",
+        },
+      ],
+    };
   },
 };
 

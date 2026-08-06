@@ -204,4 +204,4 @@ CSRF_TRUSTED_ORIGINS = [
 # Disable X-Forwarded Host/Port to prevent relative 301 proxy redirect loops
 USE_X_FORWARDED_HOST = False
 USE_X_FORWARDED_PORT = False
-APPEND_SLASH = False
+APPEND_SLASH = True
