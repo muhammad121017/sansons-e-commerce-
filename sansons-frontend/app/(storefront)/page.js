@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import Hero from "@/components/home/Hero";
 import TrustBadges from "@/components/home/TrustBadges";
 import FeaturedCategories from "@/components/home/FeaturedCategories";

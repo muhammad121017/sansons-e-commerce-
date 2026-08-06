@@ -1,12 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import ProductCard from "@/components/product/ProductCard";
 import { fadeUp, staggerContainer, viewportOnce } from "@/lib/motion";
+import { fetchBestSellers } from "@/lib/services/productService";
 
-export default function BestSellers({ products }) {
-  if (!products?.length) return null;
+export default function BestSellers({ products: initialProducts }) {
+  const [items, setItems] = useState(initialProducts || []);
+
+  useEffect(() => {
+    fetchBestSellers().then((data) => {
+      if (data && data.length > 0) {
+        setItems(data);
+      }
+    });
+  }, []);
+
+  if (!items?.length) return null;
   return (
     <section className="bg-canvas2 py-20">
       <div className="max-w-7xl mx-auto px-6">
@@ -26,7 +38,7 @@ export default function BestSellers({ products }) {
           viewport={viewportOnce}
           className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10"
         >
-          {products.slice(0, 4).map((p) => (
+          {items.slice(0, 4).map((p) => (
             <motion.div key={p.id} variants={fadeUp}>
               <ProductCard product={p} />
             </motion.div>
