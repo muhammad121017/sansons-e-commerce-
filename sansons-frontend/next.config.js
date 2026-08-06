@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  trailingSlash: true,
   skipTrailingSlashRedirect: true,
   images: {
     unoptimized: true,
@@ -15,7 +14,7 @@ const nextConfig = {
       beforeFiles: [
         {
           source: "/api/:path*",
-          destination: "http://sansons_backend:8000/api/:path*",
+          destination: "http://sansons_backend:8000/api/:path*/",
         },
         {
           source: "/media/:path*",
