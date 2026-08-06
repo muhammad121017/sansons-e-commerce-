@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  skipTrailingSlashRedirect: true,
+  trailingSlash: true,
   images: {
     unoptimized: true,
     remotePatterns: [
