@@ -1,9 +1,13 @@
 import axios from 'axios';
 
 // Smart API Base URL resolver:
-// 1. Uses NEXT_PUBLIC_API_URL if explicitly configured in environment
-// 2. On local machine (localhost / 127.0.0.1), connects directly to Django backend at http://127.0.0.1:8000/api/
-// 3. On VPS production, uses relative '/api/' which Next.js proxies to backend container
+// 1. Uses NEXT_PUBLIC_API_URL if explicitly configured to full URL
+// 2. On browser client (typeof window !== 'undefined'):
+//    - Localhost -> http://127.0.0.1:8000/api/
+//    - VPS / Production -> '/api/' (proxied by Next.js rewrite)
+// 3. On server (Node.js SSR):
+//    - VPS Docker container -> http://sansons_backend:8000/api/
+//    - Local dev server -> http://127.0.0.1:8000/api/
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== '/api/') {
     return process.env.NEXT_PUBLIC_API_URL;
@@ -13,8 +17,16 @@ const getBaseUrl = () => {
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://127.0.0.1:8000/api/';
     }
+    return '/api/';
   }
-  return '/api/';
+  // Server-side Node.js SSR
+  if (process.env.INTERNAL_API_URL) {
+    return process.env.INTERNAL_API_URL;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'http://sansons_backend:8000/api/';
+  }
+  return 'http://127.0.0.1:8000/api/';
 };
 
 const BASE = getBaseUrl();
@@ -50,7 +62,6 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // Only retry once, and only on 401 errors that aren't the refresh endpoint itself
     if (
       error.response?.status === 401 &&
       !original._retry &&
@@ -60,7 +71,6 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token');
 
       if (!refreshToken) {
-        // No refresh token — clear auth state and notify the app
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         window.dispatchEvent(new Event('auth:token-cleared'));
@@ -68,7 +78,6 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // Queue requests that come in while a refresh is in progress
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
@@ -89,7 +98,6 @@ api.interceptors.response.use(
         const newAccess = data.access;
         localStorage.setItem('access_token', newAccess);
 
-        // Update the default headers and retry queued requests
         api.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
         processQueue(null, newAccess);
 
