@@ -21,6 +21,7 @@ services:
 
   # 2. Django REST API Backend (Internal only, reached via reverse proxy)
   backend:
+    image: ghcr.io/muhammad121017/sansons-backend:latest
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -48,6 +49,7 @@ services:
 
   # 3. Next.js Storefront & Admin Portal (Exposed on Port 7989)
   frontend:
+    image: ghcr.io/muhammad121017/sansons-frontend:latest
     build:
       context: ./sansons-frontend
       dockerfile: Dockerfile
