@@ -24,7 +24,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: sansons_backend
+    container_name: sansons-backend
     restart: always
     environment:
       DB_NAME: ${POSTGRES_DB}
@@ -54,7 +54,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api/
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-60165557205-2avhk0lr636jviob6rb2hri0cijnka7r.apps.googleusercontent.com}
-    container_name: sansons_frontend
+    container_name: sansons-frontend
     restart: always
     ports:
       - "7989:3000"

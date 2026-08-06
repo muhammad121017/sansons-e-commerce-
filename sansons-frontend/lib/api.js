@@ -6,7 +6,7 @@ import axios from 'axios';
 //    - Localhost -> http://127.0.0.1:8000/api/
 //    - VPS / Production -> '/api/' (proxied by Next.js rewrite)
 // 3. On server (Node.js SSR):
-//    - VPS Docker container -> http://sansons_backend:8000/api/
+//    - VPS Docker container -> http://sansons-backend:8000/api/
 //    - Local dev server -> http://127.0.0.1:8000/api/
 const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL !== '/api/') {
@@ -24,7 +24,7 @@ const getBaseUrl = () => {
     return process.env.INTERNAL_API_URL;
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'http://sansons_backend:8000/api/';
+    return 'http://sansons-backend:8000/api/';
   }
   return 'http://127.0.0.1:8000/api/';
 };
