@@ -201,7 +201,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://72.61.151.29:7989",
     "http://72.61.151.29",
 ]
-# Trust reverse proxy headers from Next.js / Nginx
-USE_X_FORWARDED_HOST = True
-USE_X_FORWARDED_PORT = True
+# Disable X-Forwarded Host/Port to prevent relative 301 proxy redirect loops
+USE_X_FORWARDED_HOST = False
+USE_X_FORWARDED_PORT = False
 APPEND_SLASH = True
