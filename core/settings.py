@@ -201,7 +201,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://72.61.151.29:7989",
     "http://72.61.151.29",
 ]
-# Disable X-Forwarded Host/Port to prevent relative 301 proxy redirect loops
-USE_X_FORWARDED_HOST = False
-USE_X_FORWARDED_PORT = False
+# Enable X-Forwarded Host/Port so Django trusts proxy host headers
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 APPEND_SLASH = True
