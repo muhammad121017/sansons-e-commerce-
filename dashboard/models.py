@@ -75,3 +75,21 @@ def log_audit_action(user, action, details, module='General', request=None):
     except Exception as e:
         print(f"Failed to record audit log: {e}")
 
+
+class VisitorActivity(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    user_email = models.CharField(max_length=255, null=True, blank=True)
+    session_id = models.CharField(max_length=255, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    page_url = models.CharField(max_length=500, null=True, blank=True)
+    action = models.CharField(max_length=255, default='page_view')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.created_at.strftime('%Y-%m-%d %H:%M')} | {self.user_email or 'Guest'} | {self.page_url}"
+

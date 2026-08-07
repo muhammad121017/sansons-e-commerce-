@@ -660,3 +660,82 @@ class AdminAuditLogView(generics.ListAPIView):
         if module_param and module_param != 'all':
             queryset = queryset.filter(module__iexact=module_param)
         return queryset
+
+
+from rest_framework.permissions import AllowAny
+from .models import VisitorActivity
+from django.utils import timezone
+from datetime import timedelta
+
+class VisitorActivityRecordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data
+        session_id = data.get('session_id')
+        page_url = data.get('page_url', '')
+        action = data.get('action', 'page_view')
+
+        ip = None
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user = request.user if request.user and request.user.is_authenticated else None
+        
+        user_email = None
+        if user:
+            user_email = user.email
+        else:
+            user_email = data.get('user_email') or 'Guest'
+
+        VisitorActivity.objects.create(
+            user=user,
+            user_email=user_email,
+            session_id=session_id,
+            ip_address=ip,
+            user_agent=user_agent,
+            page_url=page_url,
+            action=action
+        )
+        return Response({"status": "success"}, status=201)
+
+class AdminVisitorActivityLogsView(APIView):
+    permission_classes = [IsAdminOrSeller]
+
+    def get(self, request):
+        # Stats Calculations
+        now = timezone.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        total_views_today = VisitorActivity.objects.filter(created_at__gte=today_start).count()
+        unique_sessions_today = VisitorActivity.objects.filter(created_at__gte=today_start).values('session_id').distinct().count()
+        
+        registered_count_today = VisitorActivity.objects.filter(
+            created_at__gte=today_start
+        ).exclude(user_email='Guest').values('user_email').distinct().count()
+        
+        # Paginated Logs List
+        logs = VisitorActivity.objects.all().order_by('-created_at')[:100]
+        logs_data = []
+        for l in logs:
+            logs_data.append({
+                "id": str(l.id),
+                "user_email": l.user_email or 'Guest',
+                "session_id": l.session_id,
+                "ip_address": l.ip_address,
+                "user_agent": l.user_agent,
+                "page_url": l.page_url,
+                "action": l.action,
+                "created_at": l.created_at.isoformat()
+            })
+
+        return Response({
+            "total_views_today": total_views_today,
+            "unique_sessions_today": unique_sessions_today,
+            "registered_count_today": registered_count_today,
+            "logs": logs_data
+        })

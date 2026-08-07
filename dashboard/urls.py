@@ -8,7 +8,8 @@ from .views import (
     AdminBannerListCreateView, VendorCouponListCreateView,
     VendorCouponDetailView, AdminUserManagementView, AdminUserDetailView,
     SiteCMSView, SiteSettingsView, AdminOrderListView, AdminOrderDetailView,
-    AdminTogglePublishView, AdminAuditLogView
+    AdminTogglePublishView, AdminAuditLogView,
+    VisitorActivityRecordView, AdminVisitorActivityLogsView
 )
 
 urlpatterns = [
@@ -37,6 +38,10 @@ urlpatterns = [
     path('admin/users/', AdminUserManagementView.as_view(), name='admin-users'),
     path('admin/users/<str:pk>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
     path('admin/audit-logs/', AdminAuditLogView.as_view(), name='admin-audit-logs'),
+    
+    # Store Traffic & Visitor Tracking Routes
+    path('visitor-activity/record/', VisitorActivityRecordView.as_view(), name='visitor-activity-record'),
+    path('admin/visitor-activity/logs/', AdminVisitorActivityLogsView.as_view(), name='admin-visitor-activity-logs'),
 ]
 
 

@@ -15,6 +15,7 @@ import {
   ExternalLink,
   LogOut,
   ShieldAlert,
+  Activity,
 } from "lucide-react";
 import { useToast } from "@/lib/context/ToastContext";
 
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/admin/categories", module: "categories", label: "Categories", icon: FolderTree },
   { href: "/admin/orders", module: "orders", label: "Orders", icon: ShoppingCart },
   { href: "/admin/customers", module: "users", label: "Users & Access", icon: Users },
+  { href: "/admin/visitor-logs", module: "audit", label: "Visitor & Logins", icon: Activity },
   { href: "/admin/coupons", module: "coupons", label: "Coupons", icon: Ticket },
   { href: "/admin/cms", module: "cms", label: "Content (CMS)", icon: FileText },
   { href: "/admin/audit-logs", module: "audit", label: "Actions Audit Log", icon: ShieldAlert },
