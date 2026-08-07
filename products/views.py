@@ -200,7 +200,8 @@ class CheckoutView(APIView):
             ))
 
         OrderItem.objects.bulk_create(order_items_to_create)
-        order.total_amount = total_amount
+        # Add flat 200 PKR shipping charge to the database order total
+        order.total_amount = total_amount + Decimal('200.00')
         
         payment_method = serializer.validated_data.get('payment_method', 'cod')
         order.payment_gateway_ref = payment_method

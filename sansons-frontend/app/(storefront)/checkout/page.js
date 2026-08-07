@@ -226,10 +226,44 @@ export default function CheckoutPage() {
             <h2 className="font-display text-xl mb-4">Shipping Address</h2>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Street address" value={form.address} onChange={(v) => update({ address: v })} required className="col-span-2" />
-              <Field label="City" value={form.city} onChange={(v) => update({ city: v })} required />
-              <Field label="State / Province" value={form.state} onChange={(v) => update({ state: v })} required />
+              
+              <Field
+                label="City *"
+                value={form.city}
+                onChange={(v) => update({ city: v })}
+                required
+                list="pakistan-cities"
+                autoComplete="off"
+              />
+              
+              <label className="block text-sm">
+                <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">State / Province *</span>
+                <select
+                  required
+                  value={form.state}
+                  onChange={(e) => update({ state: e.target.value })}
+                  className="w-full border border-line rounded-sm px-3.5 py-2.5 bg-paper outline-none focus:border-forest text-sm text-ink h-[46px]"
+                >
+                  <option value="">Select Province</option>
+                  <option value="Punjab">Punjab</option>
+                  <option value="Sindh">Sindh</option>
+                  <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa (KPK)</option>
+                  <option value="Balochistan">Balochistan</option>
+                  <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
+                  <option value="Azad Jammu & Kashmir">Azad Jammu & Kashmir (AJK)</option>
+                  <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+                </select>
+              </label>
+
               <Field label="ZIP / Postal code" value={form.zip} onChange={(v) => update({ zip: v })} required />
             </div>
+            
+            <datalist id="pakistan-cities">
+              {PAKISTAN_CITIES.map((city) => (
+                <option key={city} value={city} />
+              ))}
+            </datalist>
+
             <label className="flex items-center gap-2 text-sm mt-4">
               <input
                 type="checkbox"
@@ -308,7 +342,7 @@ export default function CheckoutPage() {
   );
 }
 
-function Field({ label, value, onChange, type = "text", required, className = "" }) {
+function Field({ label, value, onChange, type = "text", required, className = "", ...props }) {
   return (
     <label className={`block text-sm ${className}`}>
       <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">{label}</span>
@@ -318,6 +352,7 @@ function Field({ label, value, onChange, type = "text", required, className = ""
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full border border-line rounded-sm px-3.5 py-2.5 bg-paper outline-none focus:border-forest"
+        {...props}
       />
     </label>
   );
@@ -351,3 +386,16 @@ function Row({ label, value, accent }) {
     </div>
   );
 }
+
+const PAKISTAN_CITIES = [
+  // Punjab
+  "Lahore", "Faisalabad", "Rawalpindi", "Gujranwala", "Multan", "Bahawalpur", "Sargodha", "Sialkot", "Gujarat", "Jhelum", "Sheikhupura", "Rahim Yar Khan", "Sahiwal", "Okara", "Kasur", "Dera Ghazi Khan", "Chiniot", "Kamoke", "Hafizabad", "Sadiqabad", "Bahawalnagar", "Burewala", "Muzaffargarh", "Murree", "Taxila", "Samberial", "Khushab", "Jaranwala", "Chishtian", "Attock", "Mianwali", "Bhalwal", "Pakpattan", "Toba Tek Singh", "Gojra", "Layyah", "Vehari", "Jhang",
+  // Sindh
+  "Karachi", "Hyderabad", "Sukkur", "Larkana", "Nawabshah", "Mirpur Khas", "Jacobabad", "Shikarpur", "Khairpur", "Thatta", "Badin", "Ghotki", "Dadu", "Tando Adam", "Umerkot", "Kashmore", "Mithi",
+  // Khyber Pakhtunkhwa
+  "Peshawar", "Mardan", "Abbottabad", "Mingora (Swat)", "Kohat", "Bannu", "Dera Ismail Khan", "Haripur", "Mansehra", "Charsadda", "Nowshera", "Swabi", "Timergara", "Karak", "Hangu",
+  // Balochistan
+  "Quetta", "Gwadar", "Turbat", "Khuzdar", "Sibi", "Hub", "Chaman", "Dera Murad Jamali", "Zhob", "Loralai",
+  // AJK & Gilgit-Baltistan
+  "Muzaffarabad", "Mirpur (AJK)", "Rawalakot", "Gilgit", "Skardu"
+];

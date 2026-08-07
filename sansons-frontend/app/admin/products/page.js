@@ -261,24 +261,40 @@ export default function AdminProductsPage() {
                       )}
                     </td>
                     <td className="px-6 py-3.5 text-right">
-                      <div className="flex justify-end items-center gap-2">
+                      <div className="flex justify-end items-center gap-2.5">
                         <button
                           onClick={() => handleTogglePublish(p.id, p.isPublished !== false)}
                           title={p.isPublished !== false ? "Hide product from storefront" : "Unhide / Publish product on storefront"}
                           aria-label="Toggle storefront visibility"
-                          className={`p-1.5 rounded transition-colors ${
+                          className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded font-semibold transition-colors border ${
                             p.isPublished !== false
-                              ? "text-emerald-700 hover:text-rose-600 hover:bg-rose-50"
-                              : "text-zinc-500 hover:text-emerald-600 hover:bg-emerald-50"
+                              ? "border-emerald-200 text-emerald-800 bg-emerald-50 hover:bg-emerald-100"
+                              : "border-zinc-300 text-zinc-700 bg-zinc-100 hover:bg-zinc-200"
                           }`}
                         >
-                          {p.isPublished !== false ? <Eye size={16} /> : <EyeOff size={16} />}
+                          {p.isPublished !== false ? (
+                            <>
+                              <EyeOff size={12} /> Hide
+                            </>
+                          ) : (
+                            <>
+                              <Eye size={12} /> Publish
+                            </>
+                          )}
                         </button>
-                        <Link href={`/admin/products/new?id=${p.id}`} aria-label="Edit product" className="p-1.5 hover:text-forest">
-                          <Pencil size={15} />
+                        <Link
+                          href={`/admin/products/new?id=${p.id}`}
+                          aria-label="Edit product"
+                          className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 bg-forest text-white rounded hover:bg-forest/80 font-semibold"
+                        >
+                          <Pencil size={12} /> Edit
                         </Link>
-                        <button onClick={() => handleDelete(p.id)} aria-label="Delete product" className="p-1.5 hover:text-wine">
-                          <Trash2 size={15} />
+                        <button
+                          onClick={() => handleDelete(p.id)}
+                          aria-label="Delete product"
+                          className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 border border-wine/30 text-wine rounded hover:bg-wine/5 font-semibold"
+                        >
+                          <Trash2 size={12} /> Delete
                         </button>
                       </div>
                     </td>

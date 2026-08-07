@@ -103,10 +103,10 @@ export function CartProvider({ children }) {
   const shippingEstimate = useMemo(() => {
     if (items.length === 0) return 0;
     if (coupon?.type === "Free Shipping") return 0;
-    return subtotal > 200 ? 0 : 12;
-  }, [subtotal, coupon, items.length]);
+    return 200;
+  }, [coupon, items.length]);
 
-  const taxEstimate = useMemo(() => (subtotal - discount) * 0.08, [subtotal, discount]);
+  const taxEstimate = useMemo(() => 0, []);
 
   const total = useMemo(
     () => Math.max(0, subtotal - discount) + shippingEstimate + taxEstimate,
