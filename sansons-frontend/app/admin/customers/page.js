@@ -197,8 +197,8 @@ export default function AdminCustomersPage() {
         {loading ? (
           <div className="text-center py-12 text-ink2 text-sm">Loading user accounts & permissions from database...</div>
         ) : (
-          <div className="bg-paper border border-line rounded-md overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-paper border border-line rounded-md overflow-x-auto">
+            <table className="w-full text-sm min-w-[950px]">
               <thead>
                 <tr className="text-left text-ink2 text-xs uppercase bg-canvas2">
                   <th className="px-6 py-3">User</th>
