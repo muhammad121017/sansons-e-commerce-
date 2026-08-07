@@ -1,4 +1,4 @@
-name: Build & Push Docker Images
+name: Build, Push & Deploy
 
 on:
   push:
@@ -50,3 +50,42 @@ jobs:
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+  deploy-to-vps:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy updated containers to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          timeout: 120s
+          script: |
+            echo "=== Pulling latest images ==="
+            docker pull ghcr.io/muhammad121017/sansons-backend:latest
+            docker pull ghcr.io/muhammad121017/sansons-frontend:latest
+
+            echo "=== Restarting containers ==="
+            # Find and use docker-compose if available
+            COMPOSE_FILE=$(find /opt /root /home -name "docker-compose.yaml" -o -name "docker-compose.yml" 2>/dev/null | head -1)
+            if [ -n "$COMPOSE_FILE" ]; then
+              docker compose -f "$COMPOSE_FILE" up -d --no-deps sansons-backend sansons-frontend
+            else
+              # Fallback: stop/start containers directly
+              docker stop sansons-backend sansons-frontend 2>/dev/null || true
+              docker start sansons-backend sansons-frontend 2>/dev/null || true
+            fi
+
+            echo "=== Running migrations ==="
+            sleep 8
+            docker exec sansons-backend python manage.py migrate --no-input 2>&1 | tail -5
+
+            echo "=== Container status ==="
+            docker ps --format 'table {{.Names}}\t{{.Status}}' | grep sansons
+
+            echo "=== DEPLOY COMPLETE ==="
