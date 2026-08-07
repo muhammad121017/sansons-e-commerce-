@@ -266,19 +266,19 @@ export default function AdminVisitorLogsPage() {
                       {isExpanded && (
                         <tr className="bg-canvas/20">
                           <td colSpan={7} className="px-8 py-4 border-t border-b border-line">
-                            <div className="space-y-2">
+                            <div className="sticky left-0 w-full max-w-[900px] space-y-2">
                               <div className="flex items-center justify-between">
                                 <h4 className="text-[11px] font-semibold text-ink2 uppercase tracking-wider">
                                   Session Action Timeline ({sess.views.length} hit(s))
                                 </h4>
                                 <span className="text-[10px] text-ink2 font-mono">Session ID: {sess.session_id}</span>
                               </div>
-                              <div className="max-h-56 overflow-y-auto border border-line rounded-md bg-paper divide-y divide-line">
+                              <div className="max-h-56 overflow-y-auto border border-line rounded-md bg-paper divide-y divide-line shadow-inner">
                                 {sess.views.map((v) => (
                                   <div key={v.id} className="flex justify-between items-center px-4 py-2.5 text-xs hover:bg-canvas/10">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-forest font-semibold font-mono">{v.action.toUpperCase()}</span>
-                                      <span className="font-mono bg-canvas2 px-2 py-0.5 rounded border border-line text-ink">
+                                      <span className="text-forest font-semibold font-mono text-[10px] bg-forest/5 px-1.5 py-0.5 rounded">{v.action.toUpperCase()}</span>
+                                      <span className="font-mono bg-canvas2 px-2 py-0.5 rounded border border-line text-ink font-medium">
                                         {v.page_url}
                                       </span>
                                     </div>
