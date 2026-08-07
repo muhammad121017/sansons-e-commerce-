@@ -11,6 +11,7 @@ const MODULE_COLORS = {
   Products: "bg-emerald-100 text-emerald-800 border-emerald-200",
   Categories: "bg-amber-100 text-amber-800 border-amber-200",
   Users: "bg-purple-100 text-purple-800 border-purple-200",
+  Auth: "bg-teal-100 text-teal-800 border-teal-200",
   CMS: "bg-pink-100 text-pink-800 border-pink-200",
   Settings: "bg-slate-100 text-slate-800 border-slate-200",
   General: "bg-gray-100 text-gray-800 border-gray-200"
@@ -75,7 +76,7 @@ export default function AdminAuditLogsPage() {
             <div>
               <p className="text-sm font-semibold text-ink">Admin Portal Audit Trail</p>
               <p className="text-xs text-ink2">
-                Every action (order status changes, product toggles, user role changes, CMS edits) is recorded with user identity & timestamp.
+                Every action (user logins, order status changes, product toggles, user role changes, CMS edits) is recorded with user identity & timestamp.
               </p>
             </div>
           </div>
@@ -100,10 +101,11 @@ export default function AdminAuditLogsPage() {
             className="border border-line rounded-sm text-sm px-3 py-2 bg-paper"
           >
             <option value="all">All Modules</option>
+            <option value="Auth">🔐 User Logins &amp; Auth</option>
             <option value="Orders">Orders</option>
             <option value="Products">Products</option>
             <option value="Categories">Categories</option>
-            <option value="Users">Users & Access</option>
+            <option value="Users">Users &amp; Access</option>
             <option value="CMS">CMS Content</option>
             <option value="Settings">Settings</option>
           </select>
@@ -132,7 +134,7 @@ export default function AdminAuditLogsPage() {
                     <td className="px-6 py-3.5 text-xs text-ink2 whitespace-nowrap font-mono">
                       <div className="flex items-center gap-1.5">
                         <Clock size={13} className="text-ink2/70" />
-                        <span>{log.formattedTime || new Date(log.timestamp).toLocaleString()}</span>
+                        <span>{log.formattedTime || new Date(log.created_at || log.timestamp).toLocaleString()}</span>
                       </div>
                     </td>
                     <td className="px-6 py-3.5">

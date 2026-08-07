@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from django.contrib.auth import get_user_model
 from products.models import OrderItem, Product, Review, Banner, Coupon, Order
-from .models import SiteCMS, SiteSettings
+from .models import SiteCMS, SiteSettings, log_audit_action
 from .serializers import (
     RedactedOrderSerializer, LowStockAlertSerializer, AdminSellerSerializer,
     AdminReviewSerializer, BannerSerializer, CouponSerializer,
@@ -319,6 +319,13 @@ class AdminUserManagementView(generics.ListCreateAPIView):
             allowed_modules=allowed_modules
         )
         audit_logger.info(f"Admin User Management: User {user.email} created with role {role} and permissions {allowed_modules} by Admin/Seller {request.user.email}")
+        log_audit_action(
+            request.user,
+            "User Created",
+            f"Created staff account {user.email} with role '{role}' and limited access",
+            module="Users",
+            request=request
+        )
         return Response(UserManagementSerializer(user).data, status=status.HTTP_201_CREATED)
 
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -329,7 +336,15 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         if instance == self.request.user:
             raise serializers.ValidationError("Cannot delete your own active administrator account.")
+        email_to_delete = instance.email
         audit_logger.info(f"Admin User Management: User {instance.email} deleted by Admin/Seller {self.request.user.email}")
+        log_audit_action(
+            self.request.user,
+            "User Deleted",
+            f"Deleted user account {email_to_delete} permanently from the system",
+            module="Users",
+            request=self.request
+        )
         instance.delete()
 
     def perform_update(self, serializer):
@@ -341,6 +356,13 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
             instance.allowed_modules = self.request.data['allowed_modules']
             instance.save()
         audit_logger.info(f"Admin User Management: User {instance.email} updated by Admin/Seller {self.request.user.email}")
+        log_audit_action(
+            self.request.user,
+            "User Role & Access Updated",
+            f"Updated role and permissions for user {instance.email} (new role: '{instance.role}')",
+            module="Users",
+            request=self.request
+        )
 
 
 
@@ -398,6 +420,14 @@ class SiteCMSView(APIView):
             cms.featured_products = data['featured_products']
         cms.save()
         audit_logger.info(f"Site CMS updated by user {request.user.email}")
+        changed_sections = [k for k in ['homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products'] if k in data]
+        log_audit_action(
+            request.user,
+            "CMS Content Updated",
+            f"Updated homepage CMS content: {', '.join(changed_sections)}",
+            module="CMS",
+            request=request
+        )
         return Response(SiteCMSSerializer(cms).data)
 
 

@@ -251,23 +251,25 @@ export default function AdminCustomersPage() {
                             {u.status}
                           </Badge>
                         </td>
-                        <td className="px-6 py-3.5 text-right flex justify-end gap-2">
-                          <button
-                            onClick={() => handleEditClick(u)}
-                            aria-label="Edit user and access permissions"
-                            className="p-1.5 hover:text-forest text-ink2 transition-colors"
-                            title="Edit User & Access"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(u.id, u.email)}
-                            aria-label="Delete user"
-                            className="p-1.5 hover:text-wine text-ink2 transition-colors"
-                            title="Delete User"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                        <td className="px-6 py-3.5 text-right">
+                          <div className="flex justify-end items-center gap-2">
+                            <button
+                              onClick={() => handleEditClick(u)}
+                              aria-label="Edit user and access permissions"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-forest text-canvas text-xs font-semibold rounded hover:bg-forest/80 transition-colors"
+                              title="Edit User & Access Permissions"
+                            >
+                              <Edit size={13} /> Edit Access
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u.id, u.email)}
+                              aria-label="Delete user"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-300 text-red-600 text-xs font-semibold rounded hover:bg-red-50 transition-colors"
+                              title="Delete User"
+                            >
+                              <Trash2 size={13} /> Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

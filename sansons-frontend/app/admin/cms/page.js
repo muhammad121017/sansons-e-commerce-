@@ -46,7 +46,7 @@ export default function AdminCmsPage() {
       const [cmsRes, catRes, prodRes] = await Promise.allSettled([
         api.get("dashboard/cms/"),
         api.get("products/categories/"),
-        api.get("products/catalog/"),
+        api.get("products/dashboard/products/"),
       ]);
 
       if (catRes.status === "fulfilled") {
