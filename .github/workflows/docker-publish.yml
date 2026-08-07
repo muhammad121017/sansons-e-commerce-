@@ -74,11 +74,12 @@ jobs:
             # Find and use docker-compose if available
             COMPOSE_FILE=$(find /opt /root /home -name "docker-compose.yaml" -o -name "docker-compose.yml" 2>/dev/null | head -1)
             if [ -n "$COMPOSE_FILE" ]; then
-              docker compose -f "$COMPOSE_FILE" up -d --no-deps sansons-backend sansons-frontend
+              docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-deps backend frontend
             else
               # Fallback: stop/start containers directly
-              docker stop sansons-backend sansons-frontend 2>/dev/null || true
-              docker start sansons-backend sansons-frontend 2>/dev/null || true
+              docker rm -f sansons-backend sansons-frontend 2>/dev/null || true
+              docker run -d --name sansons-backend ghcr.io/muhammad121017/sansons-backend:latest
+              docker run -d --name sansons-frontend -p 7989:3000 ghcr.io/muhammad121017/sansons-frontend:latest
             fi
 
             echo "=== Running migrations ==="

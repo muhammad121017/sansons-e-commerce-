@@ -110,9 +110,17 @@ class AdminVerifySellerView(APIView):
         if new_status not in ['active', 'suspended', 'pending_verification']:
             return Response({"error": "Invalid status."}, status=status.HTTP_400_BAD_REQUEST)
 
+        old_status = seller.status
         seller.status = new_status
         seller.save()
         audit_logger.info(f"Admin Moderation: Seller {seller.email} status updated to {new_status} by Admin {request.user.email}")
+        log_audit_action(
+            request.user,
+            "Seller Status Updated",
+            f"Updated status for seller {seller.email} from '{old_status}' to '{new_status}'",
+            module="Users",
+            request=request
+        )
         return Response({"message": f"Seller status successfully updated to {new_status}."})
 
 class AdminReviewListView(generics.ListAPIView):
@@ -141,10 +149,25 @@ class AdminApproveReviewView(APIView):
             review.is_approved = True
             review.save()
             audit_logger.info(f"Admin Moderation: Review {review.id} approved by Admin {request.user.email}")
+            log_audit_action(
+                request.user,
+                "Review Approved",
+                f"Approved review #{review.id} on product '{review.product.title if review.product else 'Unknown Product'}'",
+                module="Reviews",
+                request=request
+            )
             return Response({"message": "Review approved successfully."})
         elif action == 'delete':
+            product_title = review.product.title if review.product else 'Unknown Product'
             review.delete()
             audit_logger.info(f"Admin Moderation: Review {review.id} deleted by Admin {request.user.email}")
+            log_audit_action(
+                request.user,
+                "Review Deleted",
+                f"Deleted review #{review.id} on product '{product_title}'",
+                module="Reviews",
+                request=request
+            )
             return Response({"message": "Review deleted successfully."})
         else:
             return Response({"error": "Invalid action. Use 'approve' or 'delete'."}, status=status.HTTP_400_BAD_REQUEST)
@@ -183,6 +206,25 @@ class AdminToggleDealView(APIView):
 
         product.save()
         audit_logger.info(f"Admin Moderation: Product {product.id} deal status updated by {request.user.email}")
+        
+        detail_msg = f"Updated deal settings for product '{product.title}' (SKU: {product.sku}): "
+        settings_changes = []
+        if is_deal is not None:
+            settings_changes.append(f"Deal of the week: {product.is_deal_of_the_week}")
+        if compare_at_price is not None:
+            settings_changes.append(f"Compare at price: ${product.compare_at_price}")
+        if price is not None and price != '':
+            settings_changes.append(f"Price: ${product.price}")
+        detail_msg += ", ".join(settings_changes)
+
+        log_audit_action(
+            request.user,
+            "Product Deal Settings Updated",
+            detail_msg,
+            module="Products",
+            request=request
+        )
+
         return Response({
             "message": "Product deal settings updated successfully.",
             "is_deal_of_the_week": product.is_deal_of_the_week,
@@ -261,7 +303,14 @@ class VendorCouponListCreateView(generics.ListCreateAPIView):
         return Coupon.objects.filter(seller=self.request.user).order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(seller=self.request.user)
+        coupon = serializer.save(seller=self.request.user)
+        log_audit_action(
+            self.request.user,
+            "Coupon Created",
+            f"Created coupon '{coupon.code}' with {coupon.discount_percent}% discount",
+            module="Coupons",
+            request=self.request
+        )
 
 class VendorCouponDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
@@ -271,6 +320,40 @@ class VendorCouponDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.user.role == 'admin':
             return Coupon.objects.all().order_by('-created_at')
         return Coupon.objects.filter(seller=self.request.user).order_by('-created_at')
+
+    def perform_update(self, serializer):
+        old_coupon = self.get_object()
+        old_code = old_coupon.code
+        old_discount = old_coupon.discount_percent
+        old_active = old_coupon.is_active
+        
+        coupon = serializer.save()
+        changes = []
+        if old_code != coupon.code:
+            changes.append(f"Code changed from '{old_code}' to '{coupon.code}'")
+        if old_discount != coupon.discount_percent:
+            changes.append(f"Discount changed from {old_discount}% to {coupon.discount_percent}%")
+        if old_active != coupon.is_active:
+            changes.append(f"Status changed from {'Active' if old_active else 'Inactive'} to {'Active' if coupon.is_active else 'Inactive'}")
+            
+        log_audit_action(
+            self.request.user,
+            "Coupon Updated",
+            f"Updated coupon '{coupon.code}': " + (", ".join(changes) if changes else "No field changes"),
+            module="Coupons",
+            request=self.request
+        )
+
+    def perform_destroy(self, instance):
+        coupon_code = instance.code
+        log_audit_action(
+            self.request.user,
+            "Coupon Deleted",
+            f"Deleted coupon '{coupon_code}' permanently",
+            module="Coupons",
+            request=self.request
+        )
+        instance.delete()
 
 from rest_framework import serializers
 
@@ -466,6 +549,15 @@ class SiteSettingsView(APIView):
             settings_obj.maintenance_mode = data['maintenance_mode']
         settings_obj.save()
         audit_logger.info(f"Site Settings updated by user {request.user.email}")
+        
+        changed_fields = [k for k in ['store_name', 'support_email', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode'] if k in data]
+        log_audit_action(
+            request.user,
+            "Settings Updated",
+            f"Updated system settings: {', '.join(changed_fields) if changed_fields else 'No changes'}",
+            module="Settings",
+            request=request
+        )
         return Response(SiteSettingsSerializer(settings_obj).data)
 
 class AdminOrderListView(generics.ListAPIView):

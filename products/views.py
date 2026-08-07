@@ -200,6 +200,14 @@ class CheckoutView(APIView):
         order.save()
 
         audit_logger.info(f"Financial Checkout: Order {order.id} placed by {purchaser.email} for ${total_amount}.")
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            purchaser,
+            "Order Placed",
+            f"Placed Order #{str(order.id)[:8]} (Payment: {payment_method.upper()}, Total: ${total_amount}) with {len(items_data)} item(s)",
+            module="Orders",
+            request=request
+        )
         return Response({"order_id": str(order.id), "total": str(total_amount), "payment_method": payment_method}, status=status.HTTP_201_CREATED)
 
 
@@ -300,7 +308,16 @@ class SellerProductListCreateView(generics.ListCreateAPIView):
             seller = User.objects.filter(role='seller', status='active').first() or user
         else:
             seller = user
-        serializer.save(seller=seller)
+        product = serializer.save(seller=seller)
+        
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            user,
+            "Product Created",
+            f"Created new product '{product.title}' (SKU: {product.sku}) in category '{product.category.name if product.category else 'Uncategorized'}' with price ${product.price}",
+            module="Products",
+            request=self.request
+        )
 
 
 class SellerProductDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -312,6 +329,49 @@ class SellerProductDetailView(generics.RetrieveUpdateDestroyAPIView):
         if user.role != 'seller':
             return Product.objects.filter(deleted_at__isnull=True)
         return Product.objects.filter(seller=user, deleted_at__isnull=True)
+
+    def perform_update(self, serializer):
+        old_product = self.get_object()
+        old_title = old_product.title
+        old_price = old_product.price
+        old_stock = old_product.stock_quantity
+        old_sku = old_product.sku
+        old_category = old_product.category
+        
+        product = serializer.save()
+        changes = []
+        if old_title != product.title:
+            changes.append(f"Title changed from '{old_title}' to '{product.title}'")
+        if old_price != product.price:
+            changes.append(f"Price changed from ${old_price} to ${product.price}")
+        if old_stock != product.stock_quantity:
+            changes.append(f"Stock changed from {old_stock} to {product.stock_quantity}")
+        if old_sku != product.sku:
+            changes.append(f"SKU changed from '{old_sku}' to '{product.sku}'")
+        if old_category != product.category:
+            changes.append(f"Category changed from '{old_category.name if old_category else 'None'}' to '{product.category.name if product.category else 'None'}'")
+            
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            self.request.user,
+            "Product Updated",
+            f"Updated product '{product.title}' (SKU: {product.sku}): " + (", ".join(changes) if changes else "No field changes"),
+            module="Products",
+            request=self.request
+        )
+
+    def perform_destroy(self, instance):
+        product_title = instance.title
+        product_sku = instance.sku
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            self.request.user,
+            "Product Deleted",
+            f"Deleted product '{product_title}' (SKU: {product_sku}) permanently",
+            module="Products",
+            request=self.request
+        )
+        instance.delete()
 
 class ProductImageUploadView(APIView):
     permission_classes = [IsSeller]
@@ -328,8 +388,18 @@ class ProductImageUploadView(APIView):
             product_image = serializer.save(product=product)
             thread = threading.Thread(target=process_image, args=(product_image.id,))
             thread.start()
+            
+            from dashboard.models import log_audit_action
+            log_audit_action(
+                request.user,
+                "Product Image Uploaded",
+                f"Uploaded a new image for product '{product.title}' (SKU: {product.sku})",
+                module="Products",
+                request=request
+            )
             return Response({"message": "Background processing started."}, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SellerOrderListView(generics.ListAPIView):
     serializer_class = SellerOrderItemSerializer
@@ -447,7 +517,15 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         name = serializer.validated_data.get('name')
         slug = serializer.validated_data.get('slug') or slugify(name)
-        serializer.save(slug=slug)
+        category = serializer.save(slug=slug)
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            self.request.user,
+            "Category Created",
+            f"Created new category '{category.name}' (Slug: {category.slug})",
+            module="Categories",
+            request=self.request
+        )
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
@@ -458,8 +536,38 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
             return []
         return [IsAdminOrSeller()]
 
+    def perform_update(self, serializer):
+        old_category = self.get_object()
+        old_name = old_category.name
+        old_slug = old_category.slug
+        category = serializer.save()
+        changes = []
+        if old_name != category.name:
+            changes.append(f"Name changed from '{old_name}' to '{category.name}'")
+        if old_slug != category.slug:
+            changes.append(f"Slug changed from '{old_slug}' to '{category.slug}'")
+        
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            self.request.user,
+            "Category Updated",
+            f"Updated category '{category.name}': " + (", ".join(changes) if changes else "No field changes"),
+            module="Categories",
+            request=self.request
+        )
+
     def perform_destroy(self, instance):
+        category_name = instance.name
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            self.request.user,
+            "Category Deleted",
+            f"Deleted category '{category_name}' permanently",
+            module="Categories",
+            request=self.request
+        )
         instance.delete()
+
 
 
 # --- Public Banners & Coupon Validation Views ---
