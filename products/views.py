@@ -110,25 +110,34 @@ class CheckoutView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         items_data = serializer.validated_data['items']
+        
+        customer_phone = request.data.get('phone') or request.data.get('customer_phone') or request.data.get('phone_number') or ''
+        if not customer_phone or len(customer_phone.strip()) < 5:
+            return Response({"error": "WhatsApp or Phone number is required for shipping updates."}, status=status.HTTP_400_BAD_REQUEST)
 
+        is_guest = True
         if request.user and request.user.is_authenticated:
             purchaser = request.user
+            is_guest = False
         else:
-            email = request.data.get('email') or request.data.get('customer_email') or 'guest@sansons.com'
+            email = request.data.get('email') or request.data.get('customer_email')
+            if not email or len(email.strip()) == 0:
+                # Generate unique shadow guest email to prevent user conflicts
+                email = f"guest_{str(uuid.uuid4())[:8]}@sansons.com"
+            
             purchaser, _ = User.objects.get_or_create(
                 email=email,
                 defaults={
-                    'first_name': 'Valued',
+                    'first_name': 'Guest',
                     'last_name': 'Customer',
                     'role': 'purchaser',
                     'status': 'active'
                 }
             )
 
-        customer_phone = request.data.get('phone') or request.data.get('customer_phone') or request.data.get('phone_number') or ''
-
         order = Order.objects.create(
             purchaser=purchaser,
+            is_guest=is_guest,
             shipping_address=serializer.validated_data['shipping_address'],
             billing_address=serializer.validated_data['billing_address'],
             customer_phone=customer_phone,
@@ -598,3 +607,94 @@ class ValidateCouponView(APIView):
             })
         except Coupon.DoesNotExist:
             return Response({"error": "Invalid or expired promo code."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+
+class ClaimOrderView(APIView):
+    permission_classes = [AllowAny]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        try:
+            order = Order.objects.select_for_update().get(pk=pk)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not order.is_guest:
+            return Response({"error": "This order has already been claimed or is linked to an account."}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = request.data.get('email', '').strip().lower()
+        password = request.data.get('password', '')
+        first_name = request.data.get('first_name', 'Valued')
+        last_name = request.data.get('last_name', 'Customer')
+
+        if not email or not password:
+            return Response({"error": "Both email and password are required to create/claim your account."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user already exists
+        user = User.objects.filter(email__iexact=email).first()
+        if user:
+            # Login check
+            if not user.check_password(password):
+                return Response({"error": "An account with this email already exists and password did not match. Please enter the correct password to link this order."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Register new purchaser account
+            user = User.objects.create(
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                role='purchaser',
+                status='active',
+                phone_number=order.customer_phone,
+                is_staff=False
+            )
+            user.set_password(password)
+            user.save()
+            
+            from dashboard.models import log_audit_action
+            log_audit_action(
+                user=user,
+                action="Guest Account Registration",
+                details=f"User {user.email} registered an account post-checkout to claim order {order.id}",
+                module="Auth",
+                request=request
+            )
+
+        # Associate this order and any other matching guest orders (by phone) to this user
+        phone = order.customer_phone
+        orders_to_link = Order.objects.filter(customer_phone=phone, is_guest=True)
+        linked_count = orders_to_link.count()
+        orders_to_link.update(purchaser=user, is_guest=False)
+
+        # Log audit action
+        from dashboard.models import log_audit_action
+        log_audit_action(
+            user=user,
+            action="Guest Orders Claimed",
+            details=f"Linked {linked_count} guest order(s) under WhatsApp/phone number {phone} to account {user.email}",
+            module="Orders",
+            request=request
+        )
+
+        # Generate access/refresh tokens to log the user in instantly
+        refresh = RefreshToken.for_user(user)
+        refresh['email'] = user.email
+        refresh['role'] = user.role
+        refresh['allowed_modules'] = user.allowed_modules or []
+
+        return Response({
+            'message': f"Successfully claimed {linked_count} order(s). You are now logged in!",
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'role': user.role,
+                'status': user.status,
+                'allowed_modules': user.allowed_modules or [],
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            }
+        }, status=status.HTTP_200_OK)

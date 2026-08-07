@@ -10,19 +10,13 @@ import { useToast } from "@/lib/context/ToastContext";
 import { useAuth } from "@/lib/context/AuthContext";
 import { formatCurrency } from "@/lib/utils";
 import api from "@/lib/api";
+import Link from "next/link";
 
 export default function CheckoutPage() {
   const { items, subtotal, discount, shippingEstimate, taxEstimate, total, clearCart } = useCart();
   const { showToast } = useToast();
-  const { isAuthenticated, user, hydrated } = useAuth();
+  const { isAuthenticated, user, loginWithGoogle } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    if (hydrated && !isAuthenticated) {
-      showToast("Please sign in to complete your checkout.", "warning");
-      router.push("/account/login?redirect=/checkout");
-    }
-  }, [hydrated, isAuthenticated, router, showToast]);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -38,6 +32,11 @@ export default function CheckoutPage() {
     notes: "",
   });
   const [placing, setPlacing] = useState(false);
+  const [placedOrder, setPlacedOrder] = useState(null);
+  
+  // Claim account state
+  const [claimForm, setClaimForm] = useState({ email: "", password: "" });
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -46,10 +45,10 @@ export default function CheckoutPage() {
         email: f.email || user.email || "",
         firstName: f.firstName || user.first_name || user.name || "",
         lastName: f.lastName || user.last_name || "",
+        phone: f.phone || user.phone_number || "",
       }));
     }
   }, [user]);
-
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -57,6 +56,10 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (items.length === 0) {
       showToast("Your bag is empty", "error");
+      return;
+    }
+    if (!form.phone || form.phone.trim().length < 5) {
+      showToast("WhatsApp / Phone Number is required for shipping updates.", "error");
       return;
     }
     setPlacing(true);
@@ -74,16 +77,25 @@ export default function CheckoutPage() {
         })),
       };
 
-
-      await api.post('products/checkout/', payload, {
+      const res = await api.post('products/checkout/', payload, {
         headers: {
           'Idempotency-Key': `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         },
       });
 
+      const orderId = res.data.order_id;
+      const orderTotal = res.data.total;
+      
       clearCart();
-      showToast("Order placed successfully! Thank you for your purchase.", "success");
-      router.push("/account/orders");
+      showToast("Order placed successfully!", "success");
+      
+      setPlacedOrder({
+        orderId,
+        total: orderTotal,
+        email: form.email,
+        phone: form.phone
+      });
+      setClaimForm({ email: form.email || "", password: "" });
     } catch (err) {
       console.error("Checkout failed:", err);
       const msg = err.response?.data?.error || err.response?.data?.detail || "Order placement failed. Please try again.";
@@ -93,6 +105,95 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleClaimAccount = async (e) => {
+    e.preventDefault();
+    if (!claimForm.email || !claimForm.password) {
+      showToast("Please enter both email and password.", "warning");
+      return;
+    }
+    setClaiming(true);
+    try {
+      const res = await api.post(`products/orders/${placedOrder.orderId}/claim/`, {
+        email: claimForm.email,
+        password: claimForm.password,
+        first_name: form.firstName,
+        last_name: form.lastName
+      });
+      
+      // Store JWT token to log user in instantly
+      localStorage.setItem("access_token", res.data.access);
+      localStorage.setItem("refresh_token", res.data.refresh);
+      localStorage.setItem("sansons_auth", JSON.stringify({
+        access: res.data.access,
+        refresh: res.data.refresh,
+        user: res.data.user
+      }));
+      
+      // Trigger token-cleared event to sync auth context
+      window.dispatchEvent(new Event("storage"));
+      
+      showToast(res.data.message, "success");
+      router.push("/account/orders");
+    } catch (err) {
+      console.error("Claim account failed:", err);
+      const msg = err.response?.data?.error || err.response?.data?.detail || "Failed to register account. Please try again.";
+      showToast(msg, "danger");
+    } finally {
+      setClaiming(false);
+    }
+  };
+
+  if (placedOrder) {
+    return (
+      <div className="max-w-xl mx-auto px-6 py-16 text-center">
+        <div className="flex justify-center mb-6 text-forest">
+          <CheckCircle2 size={64} className="stroke-[1.5]" />
+        </div>
+        <h1 className="font-display text-4xl mb-3">Order Placed!</h1>
+        <p className="text-ink2 mb-1">Thank you for your purchase. Your order ID is:</p>
+        <span className="font-mono text-sm bg-canvas2 border border-line px-3 py-1 rounded inline-block font-semibold text-ink mb-6">
+          #{placedOrder.orderId}
+        </span>
+        
+        <p className="text-sm text-ink2 mb-10">
+          We will contact you at <strong className="text-ink">{placedOrder.phone}</strong> for delivery updates.
+        </p>
+
+        {/* Claim Account / Post Checkout Card */}
+        <div className="bg-paper border border-line rounded-md p-8 shadow-sm text-left">
+          <h2 className="font-display text-xl mb-2 text-ink">Track Your Shipment easily</h2>
+          <p className="text-xs text-ink2 mb-6">
+            Enter a password below to claim your order history. You'll be able to log in, track shipping status, and moderate product reviews.
+          </p>
+          <form onSubmit={handleClaimAccount} className="space-y-4">
+            <Field
+              label="Email Address"
+              type="email"
+              value={claimForm.email}
+              onChange={(v) => setClaimForm((cf) => ({ ...cf, email: v }))}
+              required
+            />
+            <Field
+              label="Choose Password"
+              type="password"
+              value={claimForm.password}
+              onChange={(v) => setClaimForm((cf) => ({ ...cf, password: v }))}
+              required
+            />
+            <Button type="submit" variant="primary" className="w-full" disabled={claiming}>
+              {claiming ? "Saving Account…" : "Save Account & Login"}
+            </Button>
+          </form>
+        </div>
+        
+        <div className="mt-8">
+          <Link href="/shop" className="text-xs font-semibold text-forest underline decoration-dotted underline-offset-4">
+            Back to Shop
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -116,8 +217,8 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-2 gap-4">
               <Field label="First name" value={form.firstName} onChange={(v) => update({ firstName: v })} required />
               <Field label="Last name" value={form.lastName} onChange={(v) => update({ lastName: v })} required />
-              <Field label="Email" type="email" value={form.email} onChange={(v) => update({ email: v })} required className="col-span-2" />
-              <Field label="Phone" value={form.phone} onChange={(v) => update({ phone: v })} required className="col-span-2" />
+              <Field label="Email Address (Optional)" type="email" value={form.email} onChange={(v) => update({ email: v })} className="col-span-2" />
+              <Field label="WhatsApp / Phone Number *" value={form.phone} onChange={(v) => update({ phone: v })} required className="col-span-2" />
             </div>
           </section>
 

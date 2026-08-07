@@ -135,7 +135,14 @@ class Order(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    purchaser = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'purchaser'})
+    purchaser = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'role': 'purchaser'}
+    )
+    is_guest = models.BooleanField(default=False)
     
     # Idempotency Key Shield: Prevents duplicate orders
     idempotency_key = models.CharField(max_length=255, unique=True, null=True, blank=True)
@@ -154,7 +161,7 @@ class Order(models.Model):
 
 
     def __str__(self):
-        return f"Order {self.id} - {self.purchaser}"
+        return f"Order {self.id} - {self.purchaser or 'Guest'}"
 
 class OrderItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

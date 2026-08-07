@@ -4,7 +4,8 @@ from .views import (
     SellerProductListCreateView, SellerProductDetailView,
     ProductImageUploadView, SellerOrderListView, 
     SellerAnalyticsView, SellerActivityView, ReviewListCreateAPIView,
-    PublicBannerListView, ValidateCouponView, CategoryListCreateView, CategoryDetailView
+    PublicBannerListView, ValidateCouponView, CategoryListCreateView, CategoryDetailView,
+    ClaimOrderView
 )
 
 urlpatterns = [
@@ -12,6 +13,7 @@ urlpatterns = [
     path('catalog/', ProductListView.as_view(), name='product-catalog'),
     path('catalog/<str:pk>/', ProductDetailView.as_view(), name='product-detail'),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
+    path('orders/<str:pk>/claim/', ClaimOrderView.as_view(), name='claim-guest-order'),
     path('categories/', CategoryListCreateView.as_view(), name='category-list'),
     path('categories/<str:pk>/', CategoryDetailView.as_view(), name='category-detail'),
     path('reviews/', ReviewListCreateAPIView.as_view(), name='create-review'),
