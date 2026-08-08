@@ -58,6 +58,7 @@ services:
       - "7989:3000"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=reverse-proxy_default"
       - "traefik.http.routers.sansons.rule=Host(`sansons.online`) || Host(`www.sansons.online`)"
       - "traefik.http.routers.sansons.entrypoints=websecure"
       - "traefik.http.routers.sansons.tls.certresolver=mytlschallenge"
