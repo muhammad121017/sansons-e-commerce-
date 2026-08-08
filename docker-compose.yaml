@@ -56,6 +56,12 @@ services:
     restart: always
     ports:
       - "7989:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sansons.rule=Host(`sansons.online`) || Host(`www.sansons.online`)"
+      - "traefik.http.routers.sansons.entrypoints=websecure"
+      - "traefik.http.routers.sansons.tls.certresolver=letsencrypt"
+      - "traefik.http.services.sansons.loadbalancer.server.port=3000"
     depends_on:
       - backend
     networks:
