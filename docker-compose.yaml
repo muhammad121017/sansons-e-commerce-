@@ -58,11 +58,11 @@ services:
       - "7989:3000"
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=reverse-proxy_default"
-      - "traefik.http.routers.sansons.rule=Host(`sansons.online`) || Host(`www.sansons.online`)"
-      - "traefik.http.routers.sansons.entrypoints=websecure"
-      - "traefik.http.routers.sansons.tls.certresolver=mytlschallenge"
-      - "traefik.http.services.sansons.loadbalancer.server.port=3000"
+      - "traefik.docker.network=n8n_default"
+      - "traefik.http.routers.sansons-storefront.rule=Host(`sansons.online`) || Host(`www.sansons.online`)"
+      - "traefik.http.routers.sansons-storefront.entrypoints=websecure"
+      - "traefik.http.routers.sansons-storefront.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.sansons-storefront.loadbalancer.server.port=3000"
     depends_on:
       - backend
     networks:
