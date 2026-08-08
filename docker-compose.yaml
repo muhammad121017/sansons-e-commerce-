@@ -60,7 +60,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.sansons.rule=Host(`sansons.online`) || Host(`www.sansons.online`)"
       - "traefik.http.routers.sansons.entrypoints=websecure"
-      - "traefik.http.routers.sansons.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.sansons.tls.certresolver=mytlschallenge"
       - "traefik.http.services.sansons.loadbalancer.server.port=3000"
     depends_on:
       - backend
