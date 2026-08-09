@@ -192,18 +192,17 @@ export default function AdminProductsPage() {
             </button>
           </div>
         ) : (
-          <div className="bg-paper border border-line rounded-md overflow-hidden">
+          <div className="bg-paper border border-line rounded-md overflow-x-auto shadow-sm">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-ink2 text-xs uppercase bg-canvas2">
-                  <th className="px-6 py-3">Product</th>
-                  <th className="px-6 py-3">SKU</th>
-                  <th className="px-6 py-3">Category</th>
-                  <th className="px-6 py-3">Price</th>
-                  <th className="px-6 py-3">Stock Quantity</th>
-                  <th className="px-6 py-3">Stock Status</th>
-                  <th className="px-6 py-3">Visibility</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Product</th>
+                  <th className="px-3.5 py-3 whitespace-nowrap">SKU</th>
+                  <th className="px-3.5 py-3 whitespace-nowrap">Category</th>
+                  <th className="px-3.5 py-3 whitespace-nowrap">Price</th>
+                  <th className="px-3.5 py-3 whitespace-nowrap">Stock</th>
+                  <th className="px-3.5 py-3 whitespace-nowrap">Visibility</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,42 +213,33 @@ export default function AdminProductsPage() {
                       p.stock === 0 ? "bg-rose-50/40" : p.stock <= 5 ? "bg-amber-50/40" : ""
                     }`}
                   >
-                    <td className="px-6 py-3.5">
-                      <div className="flex items-center gap-3">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3 min-w-[180px]">
                         <div className="relative w-10 h-12 rounded-sm overflow-hidden bg-canvas2 shrink-0">
                           <Image src={p.images[0]} alt={p.name} fill className="object-cover" />
                         </div>
                         <span className="font-medium line-clamp-1">{p.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-3.5 font-mono text-xs text-ink2">{p.sku}</td>
-                    <td className="px-6 py-3.5 capitalize text-ink2">{p.category}</td>
-                    <td className="px-6 py-3.5 font-mono">{formatCurrency(p.price)}</td>
-                    <td className="px-6 py-3.5 font-mono font-medium">
-                      {p.stock === 0 ? (
-                        <span className="text-rose-600 font-bold">0 (Sold Out)</span>
-                      ) : p.stock <= 5 ? (
-                        <span className="text-amber-600 font-bold">{p.stock} left</span>
-                      ) : (
-                        <span>{p.stock} units</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-3.5">
+                    <td className="px-3.5 py-3 font-mono text-xs text-ink2 whitespace-nowrap">{p.sku}</td>
+                    <td className="px-3.5 py-3 capitalize text-ink2 whitespace-nowrap">{p.category}</td>
+                    <td className="px-3.5 py-3 font-mono whitespace-nowrap">{formatCurrency(p.price)}</td>
+                    <td className="px-3.5 py-3 whitespace-nowrap">
                       {p.stock === 0 ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-100 text-rose-800 text-xs font-semibold">
-                          <AlertCircle size={14} /> Sold Out
+                          <AlertCircle size={13} /> 0 (Sold Out)
                         </span>
                       ) : p.stock <= 5 ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-100 text-amber-800 text-xs font-semibold">
-                          <AlertTriangle size={14} /> Low Stock ({p.stock})
+                          <AlertTriangle size={13} /> {p.stock} left
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-medium">
-                          <CheckCircle2 size={14} /> In Stock
+                          <CheckCircle2 size={13} /> {p.stock} in stock
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-3.5">
+                    <td className="px-3.5 py-3 whitespace-nowrap">
                       {p.isPublished !== false ? (
                         <span className="inline-flex items-center gap-1 text-xs text-emerald-800 font-medium bg-emerald-100/80 px-2.5 py-1 rounded">
                           <Eye size={13} /> Published
@@ -260,13 +250,13 @@ export default function AdminProductsPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <div className="flex justify-end items-center gap-2.5">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <div className="flex justify-end items-center gap-2">
                         <button
                           onClick={() => handleTogglePublish(p.id, p.isPublished !== false)}
                           title={p.isPublished !== false ? "Hide product from storefront" : "Unhide / Publish product on storefront"}
                           aria-label="Toggle storefront visibility"
-                          className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded font-semibold transition-colors border ${
+                          className={`flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded font-semibold transition-colors border ${
                             p.isPublished !== false
                               ? "border-emerald-200 text-emerald-800 bg-emerald-50 hover:bg-emerald-100"
                               : "border-zinc-300 text-zinc-700 bg-zinc-100 hover:bg-zinc-200"
@@ -285,14 +275,14 @@ export default function AdminProductsPage() {
                         <Link
                           href={`/admin/products/new?id=${p.id}`}
                           aria-label="Edit product"
-                          className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 bg-forest text-white rounded hover:bg-forest/80 font-semibold"
+                          className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 bg-forest text-white rounded hover:bg-forest/80 font-semibold"
                         >
                           <Pencil size={12} /> Edit
                         </Link>
                         <button
                           onClick={() => handleDelete(p.id)}
                           aria-label="Delete product"
-                          className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 border border-wine/30 text-wine rounded hover:bg-wine/5 font-semibold"
+                          className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 border border-wine/30 text-wine rounded hover:bg-wine/5 font-semibold"
                         >
                           <Trash2 size={12} /> Delete
                         </button>

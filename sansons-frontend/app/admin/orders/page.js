@@ -73,17 +73,17 @@ export default function AdminOrdersPage() {
             Loading orders from database...
           </div>
         ) : (
-          <div className="bg-paper border border-line rounded-md overflow-hidden">
+          <div className="bg-paper border border-line rounded-md overflow-x-auto shadow-sm">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-ink2 text-xs uppercase bg-canvas2">
-                  <th className="px-6 py-3">Order ID</th>
-                  <th className="px-6 py-3">Customer & Phone</th>
-                  <th className="px-6 py-3">Order Date & Time</th>
-                  <th className="px-6 py-3">Payment</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Total</th>
-                  <th className="px-6 py-3 text-right">View</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Order ID</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Customer & Phone</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Order Date & Time</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Payment</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Total</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">View</th>
                 </tr>
               </thead>
               <tbody>
