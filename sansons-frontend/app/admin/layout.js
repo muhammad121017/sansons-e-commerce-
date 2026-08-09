@@ -1,13 +1,29 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ShieldAlert } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
+import { useToast } from "@/lib/context/ToastContext";
 import AdminSidebar from "@/components/admin/Sidebar";
 import Button from "@/components/ui/Button";
-import Link from "next/link";
-import { useState } from "react";
-import { useToast } from "@/lib/context/ToastContext";
+
+const ROUTE_MODULE_MAP = {
+  "/admin": "dashboard",
+  "/admin/products": "products",
+  "/admin/categories": "categories",
+  "/admin/orders": "orders",
+  "/admin/customers": "users",
+  "/admin/visitor-logs": "audit",
+  "/admin/coupons": "coupons",
+  "/admin/cms": "cms",
+  "/admin/audit-logs": "audit",
+  "/admin/settings": "settings",
+};
 
 export default function AdminLayout({ children }) {
+  const pathname = usePathname();
   const { user, isAuthenticated, login, logout, hydrated } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -85,8 +101,9 @@ export default function AdminLayout({ children }) {
   }
 
   // ── 3. Role Authorization Check ───────────────────────────────────────────
+  const isSuperAdmin = user?.role === "admin" || user?.is_superuser;
   const isAuthorized =
-    user?.role === "admin" ||
+    isSuperAdmin ||
     user?.role === "seller" ||
     (user?.role && user?.role !== "purchaser") ||
     (Array.isArray(user?.allowed_modules) && user?.allowed_modules.length > 0);
@@ -110,8 +127,43 @@ export default function AdminLayout({ children }) {
     );
   }
 
+  // ── 4. Module Route Permission Check for Sellers ─────────────────────────
+  if (!isSuperAdmin) {
+    const requiredModule = ROUTE_MODULE_MAP[pathname] || "dashboard";
+    let rawMods = user?.allowed_modules || [];
+    if (typeof rawMods === "string") {
+      try { rawMods = JSON.parse(rawMods); } catch (e) { rawMods = [rawMods]; }
+    }
+    if (!Array.isArray(rawMods)) rawMods = [];
+    const normalizedMods = rawMods.map((m) => String(m).toLowerCase().trim());
+    
+    // Default fallback for sellers if allowed_modules is empty
+    if (normalizedMods.length === 0 && user?.role === "seller") {
+      normalizedMods.push("dashboard", "products", "orders", "categories");
+    }
 
-  // ── 4. Authenticated admin/seller — render the portal ────────────────────
+    if (!normalizedMods.includes(requiredModule)) {
+      return (
+        <div className="flex bg-canvas min-h-screen">
+          <AdminSidebar />
+          <div className="flex-1 p-12 flex flex-col items-center justify-center text-center">
+            <div className="bg-rose-50 border border-rose-200 rounded-lg p-8 max-w-md shadow-sm">
+              <ShieldAlert className="w-12 h-12 text-rose-600 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-rose-900 mb-2">Module Access Restricted</h2>
+              <p className="text-xs text-rose-700 mb-6 leading-relaxed">
+                Your store account (<span className="font-semibold">{user?.email}</span>) does not have permission to access the <span className="font-bold uppercase">{requiredModule}</span> module.
+              </p>
+              <Button as={Link} href="/admin" variant="primary" size="sm">
+                Return to Authorized Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ── 5. Authenticated admin/seller — render the portal ────────────────────
   return (
     <div className="flex bg-canvas min-h-screen">
       <AdminSidebar />

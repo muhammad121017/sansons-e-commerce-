@@ -18,6 +18,7 @@ import {
   Activity,
 } from "lucide-react";
 import { useToast } from "@/lib/context/ToastContext";
+import { useAuth } from "@/lib/context/AuthContext";
 
 const NAV = [
   { href: "/admin", module: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -32,49 +33,57 @@ const NAV = [
   { href: "/admin/settings", module: "settings", label: "Settings", icon: Settings },
 ];
 
-
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { showToast } = useToast();
-  const [allowedModules, setAllowedModules] = useState(null);
-  const [role, setRole] = useState(null);
+  const { user, logout } = useAuth();
 
-  useEffect(() => {
-    try {
-      const authStr = localStorage.getItem("sansons_auth");
-      if (authStr) {
-        const auth = JSON.parse(authStr);
-        setRole(auth.user?.role || auth.role);
-        setAllowedModules(auth.user?.allowed_modules || auth.allowed_modules || []);
-      }
-    } catch (e) {}
-  }, []);
+  const isSuperAdmin = user?.role === "admin" || user?.is_superuser;
 
-  const handleLogout = () => {
-    try {
-      localStorage.removeItem("sansons_auth");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      if (showToast) showToast("Logged out of Admin Portal", "info");
-    } catch (e) {}
-    router.push("/login");
-  };
+  const allowedModsList = (() => {
+    if (isSuperAdmin) return null; // Full access for Super Admin
+    
+    let rawMods = user?.allowed_modules || [];
+    if (typeof rawMods === "string") {
+      try { rawMods = JSON.parse(rawMods); } catch (e) { rawMods = [rawMods]; }
+    }
+    
+    if (!Array.isArray(rawMods)) rawMods = [];
+    const normalized = rawMods.map((m) => String(m).toLowerCase().trim());
+    
+    // Default fallback for seller if allowed_modules is empty
+    if (normalized.length === 0 && user?.role === "seller") {
+      return ["dashboard", "products", "orders", "categories"];
+    }
+    return normalized;
+  })();
 
   const filteredNav = NAV.filter((item) => {
-    if (!role || role === "admin") return true;
-    if (!allowedModules || allowedModules.length === 0) return true;
-    return allowedModules.includes(item.module);
+    if (isSuperAdmin) return true;
+    if (!allowedModsList) return false;
+    return allowedModsList.includes(item.module.toLowerCase());
   });
+
+  const handleLogout = () => {
+    logout();
+    if (showToast) showToast("Logged out of Admin Portal", "info");
+    router.push("/account/login");
+  };
+
+  const displayName = user?.first_name
+    ? `${user.first_name} ${user.last_name || ""}`.trim()
+    : user?.email || "Staff User";
 
   return (
     <aside className="w-64 shrink-0 bg-ink text-canvas min-h-screen flex flex-col">
       <div className="px-6 py-6 border-b border-canvas/10">
         <p className="font-display text-xl">Sansons</p>
-        <p className="text-xs text-canvas/50 mt-0.5 uppercase tracking-wider">
-          Admin Portal {role && `(${role})`}
+        <p className="text-xs text-emerald-400 mt-1 font-medium truncate">
+          Logged in as <span className="font-bold">{displayName}</span>
+        </p>
+        <p className="text-[10px] text-canvas/50 uppercase tracking-widest mt-0.5 font-mono">
+          {user?.role ? `${user.role.toUpperCase()} PORTAL` : "ADMIN PORTAL"}
         </p>
       </div>
       <nav className="flex-1 py-4 px-3 space-y-0.5">
