@@ -31,10 +31,12 @@ export default function AdminProductsPage() {
         setLoading(false);
       })
       .catch((err) => {
-        const msg = err?.response?.status === 401
-          ? "Session expired. Please log out and log in again."
-          : "Failed to load products. Is the Django server running on port 8000?";
-        setError(msg);
+        const status = err?.response?.status;
+        const isAuthErr = status === 401 || status === 403;
+        const msg = isAuthErr
+          ? "Admin Session Expired or Login Required"
+          : "Failed to load products. Please check connection and retry.";
+        setError({ isAuthErr, message: msg });
         setLoading(false);
       });
   };
@@ -182,14 +184,33 @@ export default function AdminProductsPage() {
             Loading products from database...
           </div>
         ) : error ? (
-          <div className="bg-wine/10 border border-wine/30 rounded-md px-6 py-8 text-center">
-            <p className="text-wine text-sm font-medium mb-3">{error}</p>
-            <button
-              onClick={loadProducts}
-              className="text-xs px-4 py-2 bg-forest text-white rounded-sm hover:bg-forest/80 transition-colors"
-            >
-              Retry
-            </button>
+          <div className="bg-rose-50 border border-rose-200 rounded-md px-6 py-8 text-center max-w-lg mx-auto my-6 shadow-sm">
+            <AlertCircle className="w-10 h-10 text-rose-600 mx-auto mb-3" />
+            <p className="text-rose-900 text-sm font-semibold mb-2">
+              {typeof error === "object" ? error.message : error}
+            </p>
+            <p className="text-xs text-rose-700 mb-5">
+              {typeof error === "object" && error.isAuthErr
+                ? "Your authentication token has expired or is missing."
+                : "Unable to retrieve products list from the database server."}
+            </p>
+            <div className="flex justify-center items-center gap-3">
+              <button
+                onClick={loadProducts}
+                className="text-xs px-4 py-2 bg-forest text-white rounded font-semibold hover:bg-forest/80 transition-colors shadow-sm"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("access_token");
+                  window.location.reload();
+                }}
+                className="text-xs px-4 py-2 border border-zinc-300 bg-white text-zinc-700 rounded font-semibold hover:bg-zinc-50 transition-colors"
+              >
+                Log In Again
+              </button>
+            </div>
           </div>
         ) : (
           <div className="bg-paper border border-line rounded-md overflow-x-auto shadow-sm">
