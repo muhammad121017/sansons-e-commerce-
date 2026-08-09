@@ -16,19 +16,15 @@ export function AdminTopbar({ title, actions }) {
     <div className="flex items-center justify-between px-8 py-5 border-b border-line bg-paper sticky top-0 z-10">
       <div>
         <h1 className="font-display text-2xl">{title}</h1>
-      </div>
-      <div className="flex items-center gap-4">
-        {/* Welcome Logged-in User Badge */}
-        <div className="flex items-center gap-2 bg-canvas2 border border-line px-3 py-1.5 rounded-sm">
-          <User size={14} className="text-forest shrink-0" />
-          <span className="text-xs font-medium text-ink2">
-            Welcome, <span className="font-bold text-ink">{displayName}</span>
-          </span>
+        <p className="text-xs text-ink2 mt-0.5 flex items-center gap-1.5">
+          <User size={13} className="text-forest" />
+          <span>Welcome, <span className="font-semibold text-ink">{displayName}</span></span>
           <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-forest/10 text-forest border border-forest/20">
             {roleLabel}
           </span>
-        </div>
-
+        </p>
+      </div>
+      <div className="flex items-center gap-4">
         <button aria-label="Notifications" className="p-2 hover:bg-canvas2 rounded-sm text-ink2">
           <Bell size={18} />
         </button>
