@@ -12,6 +12,7 @@ class SiteCMS(models.Model):
     faq_items = models.JSONField(default=list, blank=True)
     featured_categories = models.JSONField(default=list, blank=True)
     featured_products = models.JSONField(default=list, blank=True)
+    footer_content = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -21,6 +22,8 @@ class SiteSettings(models.Model):
     id = models.CharField(primary_key=True, max_length=50, default='default')
     store_name = models.CharField(max_length=255, default='Sansons')
     support_email = models.EmailField(default='concierge@sansons.com')
+    support_phone = models.CharField(max_length=50, default='+1 (800) 555-0192')
+    store_address = models.TextField(default='142 Atelier Street, New York, NY')
     currency = models.CharField(max_length=10, default='PKR')
 
     free_shipping_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=150.00)

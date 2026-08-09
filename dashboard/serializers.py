@@ -51,13 +51,13 @@ class CouponSerializer(serializers.ModelSerializer):
 class SiteCMSSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteCMS
-        fields = ['id', 'homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products', 'updated_at']
+        fields = ['id', 'homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products', 'footer_content', 'updated_at']
 
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
-        fields = ['id', 'store_name', 'support_email', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode', 'updated_at']
+        fields = ['id', 'store_name', 'support_email', 'support_phone', 'store_address', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode', 'updated_at']
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='product.title', default='Product Item')

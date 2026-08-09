@@ -2,10 +2,21 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Instagram, Facebook, Twitter } from "lucide-react";
+import { Instagram, Facebook, Twitter, Phone, Mail, MapPin, MessageSquare, Globe, Youtube, Linkedin } from "lucide-react";
 import { getFooterContent } from "@/lib/services/cmsService";
 
-const SOCIAL_ICON = { Instagram, Pinterest: Instagram, TikTok: Twitter, Facebook, Twitter };
+const SOCIAL_ICON = {
+  Instagram,
+  Facebook,
+  Twitter,
+  WhatsApp: MessageSquare,
+  TikTok: Globe,
+  YouTube: Youtube,
+  Youtube: Youtube,
+  LinkedIn: Linkedin,
+  Linkedin: Linkedin,
+  Pinterest: Instagram,
+};
 
 export default function Footer() {
   const [content, setContent] = useState(null);
@@ -24,14 +35,14 @@ export default function Footer() {
             Sansons
           </p>
           <p className="text-canvas/60 text-sm max-w-xs leading-relaxed">
-            Considered goods, made by hand. Built for a decade of use, not a season of trend.
+            {content.description || "Considered goods, made by hand. Built for a decade of use, not a season of trend."}
           </p>
-          <div className="flex gap-3 mt-5">
-            {content.social.map((s) => {
-              const Icon = SOCIAL_ICON[s.platform] || Instagram;
+          <div className="flex gap-3 mt-5 flex-wrap">
+            {Array.isArray(content.social) && content.social.map((s, idx) => {
+              const Icon = SOCIAL_ICON[s.platform] || Globe;
               return (
                 <a
-                  key={s.platform}
+                  key={s.platform || idx}
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"

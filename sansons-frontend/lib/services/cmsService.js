@@ -166,7 +166,25 @@ export const getFaq = async () => {
 export const getTrustBadges = () => wait(mockTrustBadges);
 export const getWhyChooseUs = () => wait(mockWhyChooseUs);
 export const getNewsletterContent = () => wait(mockNewsletter);
-export const getFooterContent = () => wait(mockFooterContent);
+export const getFooterContent = async () => {
+  try {
+    const response = await api.get('dashboard/cms/');
+    const fc = response.data?.footer_content;
+    if (fc && typeof fc === 'object' && Object.keys(fc).length > 0) {
+      return {
+        description: fc.description || mockFooterContent.description,
+        contact: {
+          email: fc.contact?.email || mockFooterContent.contact.email,
+          phone: fc.contact?.phone || mockFooterContent.contact.phone,
+          address: fc.contact?.address || mockFooterContent.contact.address,
+        },
+        social: Array.isArray(fc.social) && fc.social.length > 0 ? fc.social : mockFooterContent.social,
+        columns: Array.isArray(fc.columns) && fc.columns.length > 0 ? fc.columns : mockFooterContent.columns,
+      };
+    }
+  } catch (e) {}
+  return mockFooterContent;
+};
 export const getNavigationMenu = async () => {
   try {
     const response = await api.get('products/categories/');

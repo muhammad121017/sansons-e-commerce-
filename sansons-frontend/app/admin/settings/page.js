@@ -11,7 +11,7 @@ const SETTINGS_STORAGE_KEY = "sansons_global_settings";
 
 export default function AdminSettingsPage() {
   const { showToast } = useToast();
-  const [store, setStore] = useState({ name: "Sansons", email: "hello@sansons.com", currency: "PKR" });
+  const [store, setStore] = useState({ name: "Sansons", email: "hello@sansons.com", phone: "+1 (800) 555-0192", address: "142 Atelier Street, New York, NY", currency: "PKR" });
   const [shipping, setShipping] = useState({ freeThreshold: 5000, flatRate: 250 });
   const [codEnabled, setCodEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,6 +26,8 @@ export default function AdminSettingsPage() {
           setStore({
             name: data.store_name || "Sansons",
             email: data.support_email || "hello@sansons.com",
+            phone: data.support_phone || "+1 (800) 555-0192",
+            address: data.store_address || "142 Atelier Street, New York, NY",
             currency: data.currency || "PKR"
           });
           setShipping({
@@ -60,6 +62,8 @@ export default function AdminSettingsPage() {
     const payload = {
       store_name: store.name,
       support_email: store.email,
+      support_phone: store.phone,
+      store_address: store.address,
       currency: store.currency,
       free_shipping_threshold: shipping.freeThreshold,
       flat_shipping_rate: shipping.flatRate,
@@ -92,11 +96,13 @@ export default function AdminSettingsPage() {
           <div className="py-12 text-center text-sm text-ink2">Loading global settings from database...</div>
         ) : (
           <>
-            <section className="bg-paper border border-line rounded-md p-6">
-              <h2 className="font-medium mb-4">Store Details</h2>
+            <section className="bg-paper border border-line rounded-md p-6 space-y-4">
+              <h2 className="font-medium">Store Details</h2>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Store Name" value={store.name} onChange={(v) => setStore((s) => ({ ...s, name: v }))} />
                 <Field label="Support Email" value={store.email} onChange={(v) => setStore((s) => ({ ...s, email: v }))} />
+                <Field label="Support Phone" value={store.phone} onChange={(v) => setStore((s) => ({ ...s, phone: v }))} />
+                <Field label="Store Address" value={store.address} onChange={(v) => setStore((s) => ({ ...s, address: v }))} />
                 <label className="block text-sm">
                   <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">Currency</span>
                   <select
