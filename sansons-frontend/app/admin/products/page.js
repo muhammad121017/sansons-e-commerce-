@@ -9,23 +9,38 @@ import { AdminTopbar } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { fetchAdminProducts, deleteProduct, toggleProductPublish } from "@/lib/services/productService";
+import { useAuth } from "@/lib/context/AuthContext";
+import api from "@/lib/api";
 
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/lib/context/ToastContext";
 
 export default function AdminProductsPage() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
+  const [sellers, setSellers] = useState([]);
+  const [sellerFilter, setSellerFilter] = useState("all");
   const { showToast } = useToast();
 
-  const loadProducts = () => {
+  useEffect(() => {
+    if (user?.role === "admin") {
+      api.get("dashboard/admin/sellers/")
+        .then((res) => {
+          setSellers(res.data.results || res.data || []);
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const loadProducts = (sId = sellerFilter) => {
     setLoading(true);
     setError(null);
-    fetchAdminProducts()
+    fetchAdminProducts(sId)
       .then((data) => {
         setProducts(data);
         setLoading(false);
@@ -41,10 +56,9 @@ export default function AdminProductsPage() {
       });
   };
 
-  // Layout already ensures authentication before this page renders
   useEffect(() => {
-    loadProducts();
-  }, []);
+    loadProducts(sellerFilter);
+  }, [sellerFilter]);
 
   const categories = useMemo(() => Array.from(new Set(products.map((p) => p.category))), [products]);
 
@@ -154,6 +168,20 @@ export default function AdminProductsPage() {
               className="pl-9 pr-3 py-2.5 text-sm border border-line rounded-sm bg-paper outline-none focus:border-forest w-64"
             />
           </div>
+          {user?.role === "admin" && (
+            <select
+              value={sellerFilter}
+              onChange={(e) => setSellerFilter(e.target.value)}
+              className="border border-line rounded-sm text-sm px-3 py-2.5 bg-paper font-medium focus:border-forest"
+            >
+              <option value="all">🏪 All Sellers (Marketplace)</option>
+              {sellers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  👤 {s.email} ({s.first_name || "Seller"})
+                </option>
+              ))}
+            </select>
+          )}
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}

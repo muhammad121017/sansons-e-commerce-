@@ -10,6 +10,12 @@ from django.utils.text import slugify
 # ---------------------------------------------------------
 
 class Category(models.Model):
+    STATUS_CHOICES = (
+        ('approved', 'Approved'),
+        ('pending', 'Pending Approval'),
+        ('rejected', 'Rejected'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
@@ -17,6 +23,10 @@ class Category(models.Model):
     description = models.TextField(null=True, blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
     
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved')
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_categories')
+    rejection_reason = models.TextField(null=True, blank=True)
+
     # Soft Deletion implementation
     deleted_at = models.DateTimeField(null=True, blank=True)
 

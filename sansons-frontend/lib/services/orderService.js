@@ -3,23 +3,36 @@ import { customers as mockCustomers, coupons as mockCoupons } from '../data/orde
 
 const wait = (data) => Promise.resolve(data);
 
-export const getOrders = async () => {
+export const getOrders = async (sellerId = null) => {
   try {
-    const response = await api.get('dashboard/admin/all-orders/');
+    const url = sellerId && sellerId !== 'all'
+      ? `dashboard/admin/all-orders/?seller_id=${sellerId}`
+      : 'dashboard/admin/all-orders/';
+    const response = await api.get(url);
     const list = Array.isArray(response.data) ? response.data : (response.data?.results || []);
     return list.map((item) => ({
       id: item.id.substring(0, 8).toUpperCase(),
       rawId: item.id,
       customer: item.customer || 'Valued Customer',
+      customer_name: item.customer,
+      customer_phone: item.phone || item.phone_number || item.customer_phone || '',
       email: item.email || 'customer@sansons.com',
-      date: item.date || new Date().toISOString(),
+      date: item.date || item.created_at || new Date().toISOString(),
+      created_at: item.created_at || item.date,
       status: item.status ? (item.status.charAt(0).toUpperCase() + item.status.slice(1)) : 'Pending',
-      total: parseFloat(item.total) || 0,
-      paymentMethod: item.paymentMethod || 'Cash on Delivery',
+      order_status: item.status,
+      payment_status: item.payment_status || 'unpaid',
+      payment_gateway_ref: item.payment_method || 'cod',
+      paymentMethod: item.payment_method || item.paymentMethod || 'Cash on Delivery',
+      shipping_address: item.shipping_address,
+      total: parseFloat(item.total || item.total_amount) || 0,
+      total_amount: parseFloat(item.total || item.total_amount) || 0,
       items: Array.isArray(item.items) ? item.items.map(i => ({
-        name: i.name,
-        price: parseFloat(i.price) || 0,
-        qty: i.qty || 1
+        name: i.name || i.product_name || i.product?.title || 'Product',
+        price: parseFloat(i.price || i.price_at_purchase) || 0,
+        qty: i.qty || i.quantity || 1,
+        quantity: i.qty || i.quantity || 1,
+        sku: i.sku || i.product?.sku || 'N/A'
       })) : []
     }));
   } catch (err) {

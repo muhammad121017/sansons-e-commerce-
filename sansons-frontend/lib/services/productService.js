@@ -109,10 +109,13 @@ export async function fetchProducts(filters = {}) {
   }
 }
 
-export async function fetchAdminProducts() {
+export async function fetchAdminProducts(sellerId = null) {
   // NOTE: No mock fallback — admin must always use live DB data.
   // If this throws, the calling page will show an error state.
-  const response = await api.get('products/dashboard/products/');
+  const url = sellerId && sellerId !== 'all'
+    ? `products/dashboard/products/?seller_id=${sellerId}`
+    : 'products/dashboard/products/';
+  const response = await api.get(url);
   const results = response.data.results || response.data;
   if (Array.isArray(results)) {
     return results.map(mapProduct);

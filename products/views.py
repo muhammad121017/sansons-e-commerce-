@@ -18,6 +18,7 @@ from django.db.models import Sum, F
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from .models import Product, Order, OrderItem, Review, ProductImage, Category
+from dashboard.views import IsAdminUser, IsAdminOrSeller
 
 from .serializers import (
     ProductSerializer, ProductDetailSerializer, CheckoutSerializer, 
@@ -520,19 +521,38 @@ class CategoryListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         from django.db.models import Count, Q
-        return Category.objects.filter(deleted_at__isnull=True).annotate(
+        user = self.request.user
+        queryset = Category.objects.filter(deleted_at__isnull=True)
+        
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+        elif not (user and user.is_authenticated and user.role == 'admin'):
+            queryset = queryset.filter(status='approved')
+            
+        return queryset.annotate(
             count=Count('products', filter=Q(products__deleted_at__isnull=True, products__is_published=True))
         ).order_by('name')
 
     def perform_create(self, serializer):
         name = serializer.validated_data.get('name')
         slug = serializer.validated_data.get('slug') or slugify(name)
-        category = serializer.save(slug=slug)
+        user = self.request.user
+        
+        if user and user.is_authenticated and user.role == 'seller':
+            category = serializer.save(slug=slug, status='pending', requested_by=user)
+            action_title = "Category Requested"
+            log_msg = f"Requested new category '{category.name}' (Pending Admin Approval)"
+        else:
+            category = serializer.save(slug=slug, status='approved', requested_by=user if user.is_authenticated else None)
+            action_title = "Category Created"
+            log_msg = f"Created new active category '{category.name}' (Slug: {category.slug})"
+            
         from dashboard.models import log_audit_action
         log_audit_action(
-            self.request.user,
-            "Category Created",
-            f"Created new category '{category.name}' (Slug: {category.slug})",
+            user,
+            action_title,
+            log_msg,
             module="Categories",
             request=self.request
         )
@@ -577,6 +597,47 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
             request=self.request
         )
         instance.delete()
+
+
+class CategoryModerateView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        from dashboard.models import log_audit_action
+        try:
+            category = Category.objects.get(pk=pk, deleted_at__isnull=True)
+        except Category.DoesNotExist:
+            return Response({"error": "Category not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        action = request.data.get('action')  # 'approve' or 'reject'
+        reason = request.data.get('reason', '')
+
+        if action == 'approve':
+            category.status = 'approved'
+            category.rejection_reason = None
+            category.save()
+            log_audit_action(
+                request.user,
+                "Category Approved",
+                f"Approved category '{category.name}' requested by {category.requested_by.email if category.requested_by else 'system'}",
+                module="Categories",
+                request=request
+            )
+            return Response({"message": f"Category '{category.name}' has been approved and is now live marketplace-wide.", "status": "approved"})
+        elif action == 'reject':
+            category.status = 'rejected'
+            category.rejection_reason = reason
+            category.save()
+            log_audit_action(
+                request.user,
+                "Category Rejected",
+                f"Rejected category '{category.name}' requested by {category.requested_by.email if category.requested_by else 'system'}. Reason: {reason}",
+                module="Categories",
+                request=request
+            )
+            return Response({"message": f"Category '{category.name}' request has been rejected.", "status": "rejected"})
+
+        return Response({"error": "Invalid action. Use 'approve' or 'reject'."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

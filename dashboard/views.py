@@ -236,6 +236,34 @@ class AdminPlatformOverviewView(APIView):
     permission_classes = [IsAdminOrSeller]
 
     def get(self, request):
+        user = request.user
+        seller_id = request.query_params.get('seller_id')
+
+        if user.role == 'seller' or (seller_id and seller_id != 'all'):
+            target_seller_id = user.id if user.role == 'seller' else seller_id
+            seller_items = OrderItem.objects.filter(seller_id=target_seller_id).exclude(order__order_status__in=['cancelled', 'refunded'])
+            valid_orders_ids = seller_items.values_list('order_id', flat=True).distinct()
+            total_orders = len(valid_orders_ids)
+            pending_orders = seller_items.filter(item_status__in=['pending', 'processing']).count()
+
+            total_gmv = sum((item.price_at_purchase * item.quantity) for item in seller_items) if seller_items else Decimal('0.00')
+            total_commission = sum(item.platform_commission for item in seller_items) if seller_items else Decimal('0.00')
+            net_vendor_payouts = total_gmv - total_commission
+            active_sellers_count = 1
+            avg_order_value = total_gmv / Decimal(str(max(1, total_orders))) if total_orders > 0 else Decimal('0.00')
+
+            return Response({
+                "total_gmv": str(total_gmv),
+                "total_revenue": str(total_gmv),
+                "total_commission": str(total_commission),
+                "net_vendor_payouts": str(net_vendor_payouts),
+                "total_orders": total_orders,
+                "pending": pending_orders,
+                "pending_orders": pending_orders,
+                "avg_order_value": str(round(avg_order_value, 2)),
+                "active_sellers": active_sellers_count
+            })
+
         valid_orders = Order.objects.exclude(order_status__in=['cancelled', 'refunded'])
         total_orders = valid_orders.count()
         pending_orders = valid_orders.filter(order_status__in=['pending', 'processing']).count()
@@ -565,7 +593,15 @@ class AdminOrderListView(generics.ListAPIView):
     serializer_class = AdminOrderSerializer
 
     def get_queryset(self):
-        return Order.objects.all().order_by('-created_at')
+        user = self.request.user
+        queryset = Order.objects.all().order_by('-created_at')
+        if user.role == 'seller':
+            queryset = queryset.filter(items__seller=user).distinct()
+        else:
+            seller_id = self.request.query_params.get('seller_id')
+            if seller_id and seller_id != 'all':
+                queryset = queryset.filter(items__seller_id=seller_id).distinct()
+        return queryset
 
 class AdminOrderDetailView(APIView):
     permission_classes = [IsAdminOrSeller]

@@ -1,27 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, Phone, Clock, MapPin, Mail, User } from "lucide-react";
+import { Eye, Phone, Clock, MapPin, Mail, User, Printer } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
+import OrderSlipModal from "@/components/admin/OrderSlipModal";
 import { getOrders, updateOrderStatus } from "@/lib/services/orderService";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/lib/context/ToastContext";
+import { useAuth } from "@/lib/context/AuthContext";
+import api from "@/lib/api";
 
 const STATUS_TONE = { Delivered: "success", Shipped: "neutral", Processing: "warning", Pending: "warning", Cancelled: "danger" };
 const STATUSES = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
 export default function AdminOrdersPage() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sellers, setSellers] = useState([]);
+  const [sellerFilter, setSellerFilter] = useState("all");
   const [selected, setSelected] = useState(null);
+  const [selectedSlipOrder, setSelectedSlipOrder] = useState(null);
+  const [isSlipOpen, setIsSlipOpen] = useState(false);
   const { showToast } = useToast();
 
-  const loadOrders = () => {
+  useEffect(() => {
+    if (user?.role === "admin") {
+      api.get("dashboard/admin/sellers/")
+        .then((res) => {
+          setSellers(res.data.results || res.data || []);
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const loadOrders = (sId = sellerFilter) => {
     setLoading(true);
-    getOrders()
+    getOrders(sId)
       .then((data) => {
         setOrders(data);
         setLoading(false);
@@ -32,8 +50,8 @@ export default function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    loadOrders(sellerFilter);
+  }, [sellerFilter]);
 
   const filtered = orders.filter((o) => statusFilter === "all" || o.status.toLowerCase() === statusFilter.toLowerCase());
 
@@ -52,7 +70,21 @@ export default function AdminOrdersPage() {
     <div>
       <AdminTopbar title="Orders" />
       <div className="p-8">
-        <div className="flex gap-3 mb-5">
+        <div className="flex gap-3 mb-5 flex-wrap">
+          {user?.role === "admin" && (
+            <select
+              value={sellerFilter}
+              onChange={(e) => setSellerFilter(e.target.value)}
+              className="border border-line rounded-sm text-sm px-3 py-2.5 bg-paper font-medium focus:border-forest"
+            >
+              <option value="all">🏪 All Sellers (Marketplace)</option>
+              {sellers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  👤 {s.email} ({s.first_name || "Seller"})
+                </option>
+              ))}
+            </select>
+          )}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -83,7 +115,7 @@ export default function AdminOrdersPage() {
                   <th className="px-4 py-3 whitespace-nowrap">Payment</th>
                   <th className="px-4 py-3 whitespace-nowrap">Status</th>
                   <th className="px-4 py-3 text-right whitespace-nowrap">Total</th>
-                  <th className="px-4 py-3 text-right whitespace-nowrap">View</th>
+                  <th className="px-4 py-3 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,7 +127,7 @@ export default function AdminOrdersPage() {
                         <p className="font-medium text-xs">{o.customer}</p>
                         <p className="text-[11px] text-ink2 flex items-center gap-1 mt-0.5 font-mono">
                           <Phone size={11} className="text-forest shrink-0" />
-                          <span>{o.phone || "N/A"}</span>
+                          <span>{o.customer_phone || o.phone || "N/A"}</span>
                         </p>
                       </div>
                     </td>
@@ -122,9 +154,22 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-3.5 text-right font-mono font-semibold">{formatCurrency(o.total)}</td>
                     <td className="px-6 py-3.5 text-right">
-                      <button onClick={() => setSelected(o)} aria-label="View order" className="p-1.5 hover:text-forest">
-                        <Eye size={15} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => {
+                            setSelectedSlipOrder(o);
+                            setIsSlipOpen(true);
+                          }}
+                          title="Print Packing Slip / Invoice"
+                          className="px-2 py-1 text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded font-medium flex items-center gap-1 hover:bg-emerald-100 transition-colors"
+                        >
+                          <Printer size={13} />
+                          <span>Slip</span>
+                        </button>
+                        <button onClick={() => setSelected(o)} aria-label="View order" className="p-1.5 text-zinc-500 hover:text-forest">
+                          <Eye size={15} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -153,13 +198,13 @@ export default function AdminOrdersPage() {
                   <Mail size={12} /> {selected.email}
                 </p>
                 <p className="text-xs text-forest font-mono flex items-center gap-1 mt-1 font-semibold">
-                  <Phone size={12} /> Phone: {selected.phone || "Not provided"}
+                  <Phone size={12} /> Phone: {selected.customer_phone || selected.phone || "Not provided"}
                 </p>
               </div>
               <div className="text-right">
                 <Badge tone={STATUS_TONE[selected.status] || "neutral"}>{selected.status}</Badge>
                 <p className="text-[11px] text-ink2 font-mono mt-1.5 flex items-center justify-end gap-1">
-                  <Clock size={11} /> {selected.formattedDate} at {selected.formattedTime}
+                  <Clock size={11} /> {selected.formattedDate || formatDate(selected.date)}
                 </p>
               </div>
             </div>
@@ -169,7 +214,7 @@ export default function AdminOrdersPage() {
                 <p className="font-semibold text-ink flex items-center gap-1 mb-1">
                   <MapPin size={13} className="text-forest" /> Shipping Address
                 </p>
-                <p className="text-ink2 leading-relaxed">{selected.shippingAddress}</p>
+                <p className="text-ink2 leading-relaxed">{typeof selected.shippingAddress === 'string' ? selected.shippingAddress : JSON.stringify(selected.shippingAddress)}</p>
               </div>
             )}
 
@@ -185,13 +230,36 @@ export default function AdminOrdersPage() {
               </ul>
             </div>
 
-            <div className="flex justify-between font-bold text-base border-t border-line pt-3">
-              <span>Total Amount</span>
-              <span className="font-mono text-forest">{formatCurrency(selected.total)}</span>
+            <div className="flex justify-between items-center border-t border-line pt-3">
+              <button
+                onClick={() => {
+                  const targetOrder = selected;
+                  setSelected(null);
+                  setSelectedSlipOrder(targetOrder);
+                  setIsSlipOpen(true);
+                }}
+                className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded font-medium flex items-center gap-1.5 hover:bg-emerald-500 transition-colors shadow-sm"
+              >
+                <Printer size={14} />
+                <span>Print Slip & Invoice</span>
+              </button>
+              <div className="text-right font-bold text-base">
+                <span className="text-xs text-ink2 font-normal mr-2">Grand Total:</span>
+                <span className="font-mono text-forest">{formatCurrency(selected.total)}</span>
+              </div>
             </div>
           </div>
         )}
       </Modal>
+
+      <OrderSlipModal
+        order={selectedSlipOrder}
+        isOpen={isSlipOpen}
+        onClose={() => {
+          setIsSlipOpen(false);
+          setSelectedSlipOrder(null);
+        }}
+      />
     </div>
   );
 }

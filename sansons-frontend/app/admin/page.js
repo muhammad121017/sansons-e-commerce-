@@ -5,22 +5,56 @@ import Link from "next/link";
 import { DollarSign, ShoppingCart, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { AdminTopbar, StatCard } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
-import { orderStats, getOrders } from "@/lib/services/orderService";
+import { getOrders } from "@/lib/services/orderService";
 import { fetchAdminProducts } from "@/lib/services/productService";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { useAuth } from "@/lib/context/AuthContext";
+import api from "@/lib/api";
 
 const STATUS_TONE = { Delivered: "success", Shipped: "neutral", Processing: "warning", Pending: "warning", Cancelled: "danger" };
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [sellers, setSellers] = useState([]);
+  const [sellerFilter, setSellerFilter] = useState("all");
 
   useEffect(() => {
-    orderStats().then(setStats);
-    getOrders().then((o) => setOrders(o.slice(0, 5)));
-    fetchAdminProducts().then((p) => setProducts(p)).catch(() => {});
-  }, []);
+    if (user?.role === "admin") {
+      api.get("dashboard/admin/sellers/")
+        .then((res) => {
+          setSellers(res.data.results || res.data || []);
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  const loadDashboardData = (sId = sellerFilter) => {
+    const url = sId && sId !== "all"
+      ? `dashboard/admin/financials/?seller_id=${sId}`
+      : "dashboard/admin/financials/";
+      
+    api.get(url)
+      .then((res) => {
+        const d = res.data;
+        setStats({
+          totalRevenue: parseFloat(d.total_revenue || d.total_gmv || 0),
+          totalOrders: d.total_orders || 0,
+          pending: d.pending || d.pending_orders || 0,
+          avgOrderValue: parseFloat(d.avg_order_value || 0)
+        });
+      })
+      .catch(() => {});
+
+    getOrders(sId).then((o) => setOrders(o.slice(0, 5))).catch(() => {});
+    fetchAdminProducts(sId).then((p) => setProducts(p)).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadDashboardData(sellerFilter);
+  }, [sellerFilter]);
 
   const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 5);
   const outOfStock = products.filter((p) => p.stock === 0);
@@ -29,6 +63,27 @@ export default function AdminDashboard() {
     <div>
       <AdminTopbar title="Dashboard" />
       <div className="p-8">
+        {user?.role === "admin" && (
+          <div className="flex items-center justify-between mb-6 bg-paper p-4 border border-line rounded-md">
+            <div>
+              <h3 className="font-semibold text-sm text-ink">Marketplace Sales Filter</h3>
+              <p className="text-xs text-ink2">Filter revenue, orders, and top products by specific seller store.</p>
+            </div>
+            <select
+              value={sellerFilter}
+              onChange={(e) => setSellerFilter(e.target.value)}
+              className="border border-line rounded px-3.5 py-2 text-xs bg-paper font-medium focus:border-forest outline-none"
+            >
+              <option value="all">🏪 All Marketplace Sales (Overall)</option>
+              {sellers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  👤 {s.email} ({s.first_name || "Seller"})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           <StatCard icon={DollarSign} label="Total Revenue" value={stats ? formatCurrency(stats.totalRevenue) : "—"} tone="forest" trend="+12.4%" />
           <StatCard icon={ShoppingCart} label="Total Orders" value={stats?.totalOrders ?? "—"} tone="brass" />
