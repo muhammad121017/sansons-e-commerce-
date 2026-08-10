@@ -56,6 +56,8 @@ function mapProduct(p) {
       colors: p.attributes?.colors || [],
       sizes: p.attributes?.sizes || []
     },
+    isPublished: p.is_published ?? true,
+    is_published: p.is_published ?? true,
     deliveryEstimate: '3–5 business days',
     returnPolicy: '30-day free returns'
   };

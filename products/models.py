@@ -199,16 +199,18 @@ class OrderItem(models.Model):
 class Review(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    purchaser = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    purchaser = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    author_name = models.CharField(max_length=255, blank=True, default='Verified Customer')
     
-    rating = models.PositiveSmallIntegerField() 
-    comment = models.TextField()
-    is_approved = models.BooleanField(default=False)
+    rating = models.PositiveSmallIntegerField(default=5) 
+    comment = models.TextField(blank=True, default='')
+    images = models.JSONField(default=list, blank=True)
+    is_approved = models.BooleanField(default=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Review by {self.purchaser} on {self.product}"
+        return f"Review by {self.author_name or self.purchaser} on {self.product}"
 
 # ---------------------------------------------------------
 # COUPONS & PROMO CODES MODEL

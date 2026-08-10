@@ -14,7 +14,6 @@ import { AccordionItem } from "@/components/ui/Accordion";
 import ReviewsSection from "@/components/product/ReviewsSection";
 import { RelatedProducts, RecentlyViewedRail } from "@/components/product/RelatedProducts";
 import { fetchProductBySlug, fetchRelatedProducts } from "@/lib/services/productService";
-import { getReviewsForProduct } from "@/lib/data/reviews";
 import { useCart } from "@/lib/context/CartContext";
 import { useWishlist } from "@/lib/context/WishlistContext";
 import { useToast } from "@/lib/context/ToastContext";
@@ -214,8 +213,8 @@ export default function ProductDetailPage() {
       </motion.div>
 
       <div className="max-w-3xl mx-auto px-6 py-16 border-t border-line">
-        <h2 className="font-display text-2xl mb-8">Reviews</h2>
-        <ReviewsSection product={product} reviews={getReviewsForProduct(product.id)} />
+        <h2 className="font-display text-2xl mb-8">Customer Reviews</h2>
+        <ReviewsSection product={product} />
       </div>
 
       <RelatedProducts title="You May Also Like" products={related} />

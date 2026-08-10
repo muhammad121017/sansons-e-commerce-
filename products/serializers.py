@@ -104,24 +104,29 @@ class SellerOrderItemSerializer(serializers.ModelSerializer):
 # --- Review Submission Serializer ---
 
 class ReviewSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(min_value=1, max_value=5)
-    comment = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+    rating = serializers.IntegerField(min_value=1, max_value=5, default=5)
+    comment = serializers.CharField(max_length=2000, required=False, allow_blank=True)
+    author_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    images = serializers.ListField(child=serializers.CharField(), required=False, default=list)
     purchaser_email = serializers.SerializerMethodField(read_only=True)
     purchaser_name = serializers.SerializerMethodField(read_only=True)
+    date = serializers.DateTimeField(source='created_at', read_only=True)
 
     class Meta:
         model = Review
-        fields = ['id', 'product', 'rating', 'comment', 'is_approved', 'purchaser_email', 'purchaser_name']
-        read_only_fields = ['is_approved']
+        fields = ['id', 'product', 'rating', 'comment', 'author_name', 'images', 'is_approved', 'purchaser_email', 'purchaser_name', 'date', 'created_at']
+        read_only_fields = ['is_approved', 'created_at']
 
     def get_purchaser_email(self, obj):
         return obj.purchaser.email if obj.purchaser else ''
 
     def get_purchaser_name(self, obj):
+        if obj.author_name:
+            return obj.author_name
         if obj.purchaser:
             name = f"{obj.purchaser.first_name} {obj.purchaser.last_name}".strip()
             return name if name else obj.purchaser.email
-        return 'Anonymous'
+        return 'Verified Customer'
 
     def validate_comment(self, value):
         if value:

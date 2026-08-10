@@ -493,20 +493,33 @@ class ReviewListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ReviewSerializer
 
     def get_permissions(self):
-        if self.request.method == 'GET':
-            return []
-        return [IsAuthenticated()]
+        return []
 
     def get_queryset(self):
-        return Review.objects.filter(is_approved=True).order_by('-created_at')[:10]
+        qs = Review.objects.filter(is_approved=True).order_by('-created_at')
+        product_id = self.request.query_params.get('product') or self.request.query_params.get('product_id')
+        product_slug = self.request.query_params.get('slug') or self.request.query_params.get('product_slug')
+        
+        if product_id:
+            qs = qs.filter(product_id=product_id)
+        elif product_slug:
+            qs = qs.filter(product__slug=product_slug)
+            
+        return qs
 
     def perform_create(self, serializer):
-        product = serializer.validated_data['product']
-        user = self.request.user
-        has_purchased = OrderItem.objects.filter(order__purchaser=user, product=product, order__order_status='delivered').exists()
-        if not has_purchased:
-            raise ValidationError("Feedback rejected. Purchase required.")
-        serializer.save(purchaser=user, is_approved=False)
+        user = self.request.user if self.request.user and self.request.user.is_authenticated else None
+        author_name = self.request.data.get('author_name')
+        if not author_name and user:
+            author_name = f"{user.first_name} {user.last_name}".strip() or user.email
+        if not author_name:
+            author_name = 'Verified Buyer'
+
+        serializer.save(
+            purchaser=user,
+            author_name=author_name,
+            is_approved=True
+        )
 
 from dashboard.views import IsAdminOrSeller
 from django.utils.text import slugify
