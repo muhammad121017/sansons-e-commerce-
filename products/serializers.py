@@ -2,21 +2,38 @@ from rest_framework import serializers
 from django.utils.html import escape
 from .models import Product, Category, Order, OrderItem, Review, ProductImage
 
+class SubCategorySerializer(serializers.ModelSerializer):
+    count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'image', 'description', 'count']
+
 class CategorySerializer(serializers.ModelSerializer):
     count = serializers.IntegerField(read_only=True, default=0)
     visibility_status = serializers.SerializerMethodField()
     approval_status = serializers.CharField(source='status', read_only=True)
     requested_by_email = serializers.SerializerMethodField()
+    parent_id = serializers.PrimaryKeyRelatedField(source='parent', read_only=True)
+    subcategories = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'image', 'description', 'count', 'status', 'approval_status', 'visibility_status', 'requested_by', 'requested_by_email', 'rejection_reason']
+        fields = [
+            'id', 'name', 'slug', 'image', 'description', 'parent', 'parent_id',
+            'subcategories', 'count', 'status', 'approval_status', 'visibility_status',
+            'requested_by', 'requested_by_email', 'rejection_reason'
+        ]
 
     def get_visibility_status(self, obj):
         return 'active' if obj.deleted_at is None else 'hidden'
 
     def get_requested_by_email(self, obj):
         return obj.requested_by.email if obj.requested_by else None
+
+    def get_subcategories(self, obj):
+        subs = obj.subcategories.filter(deleted_at__isnull=True, status='approved')
+        return SubCategorySerializer(subs, many=True).data
 
 
 class ProductSerializer(serializers.ModelSerializer):

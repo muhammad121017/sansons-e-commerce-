@@ -139,7 +139,7 @@ export async function createProduct(form) {
     compare_at_price: form.compareAtPrice ? parseFloat(form.compareAtPrice) : null,
     stock_quantity: parseInt(form.stock) || 0,
     category: form.category,
-    is_published: true,
+    is_published: form.is_published ?? form.isPublished ?? true,
     is_deal_of_the_week: form.isBestSeller || false,
     attributes: {
       brand: form.brand || 'Sansons',
@@ -165,7 +165,7 @@ export async function updateProduct(id, form) {
     compare_at_price: form.compareAtPrice ? parseFloat(form.compareAtPrice) : null,
     stock_quantity: parseInt(form.stock) || 0,
     category: form.category,
-    is_published: true,
+    is_published: form.is_published ?? form.isPublished ?? true,
     is_deal_of_the_week: form.isBestSeller || false,
     attributes: {
       brand: form.brand || 'Sansons',

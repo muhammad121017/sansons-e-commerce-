@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { GripVertical, Eye, EyeOff, Save, Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Button from "@/components/ui/Button";
@@ -67,7 +68,17 @@ const TABS = ["Homepage Sections", "Featured Categories", "Featured Best Sellers
 const CMS_STORAGE_KEY = "sansons_cms_config";
 
 export default function AdminCmsPage() {
-  const [tab, setTab] = useState(TABS[0]);
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-ink2">Loading CMS Manager...</div>}>
+      <AdminCmsPageInner />
+    </Suspense>
+  );
+}
+
+function AdminCmsPageInner() {
+  const searchParams = useSearchParams();
+  const initialTabFromUrl = searchParams.get("tab");
+  const [tab, setTab] = useState(initialTabFromUrl && TABS.includes(initialTabFromUrl) ? initialTabFromUrl : TABS[0]);
   const [sections, setSections] = useState(DEFAULT_HOMEPAGE_SECTIONS);
   const [hero, setHero] = useState(initialHero);
   const [announcement, setAnnouncement] = useState(initialAnnouncement);

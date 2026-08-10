@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Save, Sparkles } from "lucide-react";
+import { Save, Sparkles, ExternalLink } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/lib/context/ToastContext";
@@ -96,6 +97,20 @@ export default function AdminSettingsPage() {
           <div className="py-12 text-center text-sm text-ink2">Loading global settings from database...</div>
         ) : (
           <>
+            <div className="bg-forest/10 border border-forest/30 rounded-md p-5 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold text-sm text-forest flex items-center gap-2">
+                  <Sparkles size={16} /> Storefront Footer &amp; Contact Details CMS
+                </h3>
+                <p className="text-xs text-ink2 mt-1 leading-relaxed">
+                  Easily edit your store tagline, support email/phone, store address, social media icons, and footer menu columns.
+                </p>
+              </div>
+              <Button as={Link} href="/admin/cms?tab=Footer+%26+Contact+Details" variant="primary" size="xs" className="shrink-0">
+                <ExternalLink size={13} /> Edit Footer &amp; Contact Details
+              </Button>
+            </div>
+
             <section className="bg-paper border border-line rounded-md p-6 space-y-4">
               <h2 className="font-medium">Store Details</h2>
               <div className="grid grid-cols-2 gap-4">

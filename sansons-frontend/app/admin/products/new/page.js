@@ -31,6 +31,7 @@ function ProductFormInner() {
     compareAtPrice: "",
     stock: "",
     description: "",
+    isPublished: true,
     isNew: false,
     isBestSeller: false,
     codAvailable: true,
@@ -67,6 +68,7 @@ function ProductFormInner() {
             compareAtPrice: editing.compareAtPrice || "",
             stock: editing.stock,
             description: editing.description,
+            isPublished: editing.isPublished ?? editing.is_published ?? true,
             isNew: editing.isNew,
             isBestSeller: editing.isBestSeller,
             codAvailable: editing.codAvailable,
@@ -114,6 +116,7 @@ function ProductFormInner() {
     try {
       const payload = {
         ...form,
+        is_published: form.isPublished,
         imageUrl: imageUrls[0] || "",
         images: imageUrls
       };
@@ -237,16 +240,28 @@ function ProductFormInner() {
             />
           </label>
 
-          <div className="flex gap-6">
-            <label className="flex items-center gap-2 text-sm">
+          <div className="flex flex-wrap gap-6 border-t border-b border-line py-4 my-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-ink cursor-pointer bg-canvas px-3 py-1.5 border border-line rounded">
+              <input
+                type="checkbox"
+                checked={form.isPublished}
+                onChange={(e) => update({ isPublished: e.target.checked })}
+                className="accent-forest w-4 h-4"
+              />
+              <span>Published on Storefront (Visible to Customers)</span>
+            </label>
+
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={form.isNew} onChange={(e) => update({ isNew: e.target.checked })} className="accent-forest" />
               Mark as New
             </label>
-            <label className="flex items-center gap-2 text-sm">
+
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={form.isBestSeller} onChange={(e) => update({ isBestSeller: e.target.checked })} className="accent-forest" />
               Best Seller
             </label>
-            <label className="flex items-center gap-2 text-sm">
+
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={form.codAvailable} onChange={(e) => update({ codAvailable: e.target.checked })} className="accent-forest" />
               COD Available
             </label>

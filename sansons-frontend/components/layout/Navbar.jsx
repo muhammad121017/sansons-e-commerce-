@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, Search, Heart, ShoppingBag, User } from "lucide-react";
+import { Menu, Search, Heart, ShoppingBag, User, LayoutGrid } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import MegaMenu from "./MegaMenu";
 import MobileDrawer from "./MobileDrawer";
+import CategoryDrawer from "./CategoryDrawer";
 import PredictiveSearch from "./PredictiveSearch";
 import { useCart } from "@/lib/context/CartContext";
 import { useWishlist } from "@/lib/context/WishlistContext";
@@ -16,6 +17,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const { itemCount, openDrawer } = useCart();
@@ -41,19 +43,25 @@ export default function Navbar() {
       onMouseLeave={() => setOpenMenuId(null)}
     >
       <div className="max-w-7xl mx-auto px-4 lg:px-6 h-20 flex items-center justify-between relative">
-        <div className="flex items-center gap-4 lg:hidden">
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="p-1">
-            <Menu size={22} />
+        {/* Top-Left Category Hamburger Menu Button (All Devices) */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCategoryDrawerOpen(true)}
+            aria-label="Open Categories Menu"
+            className="flex items-center gap-2 px-3 py-2 rounded border border-line bg-paper hover:border-forest hover:text-forest transition-colors text-xs font-semibold"
+            title="Browse Categories & Sub-Categories"
+          >
+            <Menu size={20} className="text-forest" />
+            <span className="hidden sm:inline-block uppercase tracking-wider text-[11px]">Categories</span>
           </button>
         </div>
 
-        {/* Dynamic logo — swap the text below for an <Image> once branding assets exist */}
+        {/* Dynamic Logo */}
         <Link href="/" className="font-display text-2xl lg:text-3xl tracking-tight select-none">
           Sansons
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8 ml-10">
-
+        <nav className="hidden lg:flex items-center gap-8 ml-6">
           {navigation.map((item) => (
             <div key={item.id} className="relative" onMouseEnter={() => item.megaMenu && setOpenMenuId(item.id)}>
               <Link
@@ -94,6 +102,7 @@ export default function Navbar() {
         <AnimatePresence>{activeItem && <MegaMenu item={activeItem} onClose={() => setOpenMenuId(null)} />}</AnimatePresence>
       </div>
 
+      <CategoryDrawer open={categoryDrawerOpen} onClose={() => setCategoryDrawerOpen(false)} />
       <MobileDrawer open={mobileOpen} onClose={() => setMobileOpen(false)} navigation={navigation} />
       <PredictiveSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
