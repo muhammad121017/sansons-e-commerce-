@@ -29,7 +29,12 @@ class CategorySerializer(serializers.ModelSerializer):
         return 'active' if obj.deleted_at is None else 'hidden'
 
     def get_requested_by_email(self, obj):
-        return obj.requested_by.email if obj.requested_by else None
+        if not obj.requested_by:
+            return None
+        full_name = f"{obj.requested_by.first_name} {obj.requested_by.last_name}".strip()
+        if full_name:
+            return f"{obj.requested_by.email} ({full_name})"
+        return obj.requested_by.email
 
     def get_subcategories(self, obj):
         subs = obj.subcategories.filter(deleted_at__isnull=True, status='approved')

@@ -81,43 +81,43 @@ export default function CategoryDrawer({ open, onClose }) {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 26, stiffness: 240 }}
-            className="fixed top-0 left-0 bottom-0 z-50 w-full max-w-3xl bg-paper border-r border-line shadow-2xl flex flex-col overflow-hidden"
+            className="fixed top-0 left-0 h-screen z-50 w-full max-w-2xl bg-paper text-ink border-r border-line shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Drawer Header */}
-            <div className="p-5 border-b border-line flex items-center justify-between bg-canvas">
+            <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between bg-canvas shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-lg bg-forest/10 text-forest border border-forest/20">
-                  <Grid size={22} />
+                <div className="p-2 rounded-lg bg-forest/10 text-forest border border-forest/20 shrink-0">
+                  <Grid size={20} />
                 </div>
                 <div>
-                  <h2 className="font-display text-xl text-ink font-bold tracking-tight">Product Categories</h2>
-                  <p className="text-xs text-ink2">Browse our curated collections &amp; sub-categories</p>
+                  <h2 className="font-display text-lg sm:text-xl text-ink font-bold tracking-tight">Product Categories</h2>
+                  <p className="text-[11px] sm:text-xs text-ink2">Browse main &amp; sub-categories</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-paper text-ink2 hover:text-ink transition-colors border border-line"
+                className="p-2 rounded-full hover:bg-paper text-ink2 hover:text-ink transition-colors border border-line shrink-0"
                 aria-label="Close menu"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             {/* Instant Search Bar */}
-            <div className="p-4 border-b border-line bg-paper/50">
+            <div className="p-3.5 border-b border-line bg-paper shrink-0">
               <div className="relative">
-                <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink2" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink2" />
                 <input
                   type="text"
-                  placeholder="Search main categories or sub-categories..."
+                  placeholder="Search main or sub-categories..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-canvas border border-line rounded-lg pl-10 pr-4 py-2.5 text-xs text-ink placeholder:text-ink2 outline-none focus:border-forest focus:ring-1 focus:ring-forest transition-all"
+                  className="w-full bg-canvas border border-line rounded-lg pl-9 pr-4 py-2 text-xs text-ink placeholder:text-ink2 outline-none focus:border-forest focus:ring-1 focus:ring-forest transition-all"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink2 hover:text-ink"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink2 hover:text-ink font-semibold"
                   >
                     Clear
                   </button>
@@ -126,35 +126,35 @@ export default function CategoryDrawer({ open, onClose }) {
             </div>
 
             {/* Quick Action Badges */}
-            <div className="px-5 py-3 bg-canvas border-b border-line flex items-center gap-2 overflow-x-auto text-xs">
-              <span className="text-[11px] font-semibold text-ink2 uppercase tracking-wider shrink-0">Quick Filter:</span>
+            <div className="px-4 py-2.5 bg-canvas border-b border-line flex items-center gap-2 overflow-x-auto text-xs shrink-0 scrollbar-none">
+              <span className="text-[10px] font-bold text-ink2 uppercase tracking-wider shrink-0">Quick Filter:</span>
               <Link
                 href="/shop?sort=newest"
                 onClick={onClose}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-line bg-paper hover:border-forest hover:text-forest transition-colors font-medium shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-line bg-paper hover:border-forest hover:text-forest transition-colors font-medium shrink-0 text-[11px]"
               >
-                <Sparkles size={13} className="text-brass" /> New Arrivals
+                <Sparkles size={12} className="text-brass" /> New Arrivals
               </Link>
               <Link
                 href="/shop?sort=best-selling"
                 onClick={onClose}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-line bg-paper hover:border-forest hover:text-forest transition-colors font-medium shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-line bg-paper hover:border-forest hover:text-forest transition-colors font-medium shrink-0 text-[11px]"
               >
-                <Flame size={13} className="text-wine" /> Best Sellers
+                <Flame size={12} className="text-wine" /> Best Sellers
               </Link>
               <Link
                 href="/shop"
                 onClick={onClose}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-line bg-paper hover:border-forest hover:text-forest transition-colors font-medium shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-line bg-paper hover:border-forest hover:text-forest transition-colors font-medium shrink-0 text-[11px]"
               >
-                <ShoppingBag size={13} /> View All Shop
+                <ShoppingBag size={12} /> All Shop
               </Link>
             </div>
 
             {/* 2-Column Body Content */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col sm:flex-row overflow-hidden bg-paper">
               {/* Left Column: Main Categories List */}
-              <div className="w-1/2 border-r border-line overflow-y-auto bg-canvas p-3 space-y-1.5">
+              <div className="w-full sm:w-5/12 border-b sm:border-b-0 sm:border-r border-line overflow-y-auto bg-canvas p-3 space-y-1.5 shrink-0 max-h-[40vh] sm:max-h-none">
                 <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-ink2 font-bold flex justify-between items-center">
                   <span>Main Categories</span>
                   <span>{filteredMains.length}</span>

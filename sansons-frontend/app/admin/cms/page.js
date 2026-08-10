@@ -365,7 +365,19 @@ function AdminCmsPageInner() {
               <div className="space-y-4 max-w-2xl">
                 {hero.map((slide, i) => (
                   <div key={slide.id} className="bg-paper border border-line rounded-md p-5">
-                    <p className="text-xs uppercase text-ink2 mb-3">Slide {i + 1}</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs uppercase text-ink font-bold">Slide {i + 1}</p>
+                      {hero.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setHero((prev) => prev.filter((s) => s.id !== slide.id))}
+                          className="p-1.5 rounded hover:bg-wine/10 text-wine text-xs font-semibold flex items-center gap-1 border border-line"
+                          title="Delete Slide"
+                        >
+                          <Trash2 size={13} /> Delete Slide
+                        </button>
+                      )}
+                    </div>
                     <div className="grid gap-3">
                       <LabeledInput label="Eyebrow" value={slide.eyebrow} onChange={(v) => updateHero(setHero, slide.id, { eyebrow: v })} />
                       <LabeledInput label="Title" value={slide.title} onChange={(v) => updateHero(setHero, slide.id, { title: v })} />

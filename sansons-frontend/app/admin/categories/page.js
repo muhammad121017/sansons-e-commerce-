@@ -271,7 +271,9 @@ export default function AdminCategoriesPage() {
                 {pendingCategories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-canvas/50 transition-colors">
                     <td className="p-4 font-semibold text-ink">{cat.name}</td>
-                    <td className="p-4 text-ink2 text-xs">{cat.requested_by_email || "Seller"}</td>
+                    <td className="p-4 text-ink font-medium text-xs font-mono">
+                      {cat.requested_by_email || cat.requestedBy || "Seller"}
+                    </td>
                     <td className="p-4 text-ink2 text-xs">{cat.description || "No description provided"}</td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
@@ -550,19 +552,37 @@ export default function AdminCategoriesPage() {
             />
           </label>
 
-          <label className="block text-sm">
-            <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">Category Image</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageFile(e, setMainForm)}
-              className="w-full text-xs text-ink2"
-            />
+          <div className="space-y-2 border border-line rounded-lg p-3 bg-canvas/30">
+            <span className="block text-xs uppercase tracking-wider text-ink2 font-semibold">Category Image (File or URL)</span>
+            
+            <div className="grid gap-2">
+              <input
+                type="text"
+                value={mainForm.image}
+                onChange={(e) => setMainForm((f) => ({ ...f, image: e.target.value }))}
+                placeholder="Paste Image URL (https://...)"
+                className="w-full border border-line rounded-sm px-3 py-2 text-xs bg-paper outline-none focus:border-forest"
+              />
+              
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[11px] text-ink2 uppercase font-semibold">Or upload file:</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageFile(e, setMainForm)}
+                  className="text-xs text-ink2 flex-1"
+                />
+              </div>
+            </div>
+
             {mainForm.image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={mainForm.image} alt="Preview" className="w-16 h-16 rounded object-cover border border-line mt-2" />
+              <div className="pt-2 flex items-center gap-3 border-t border-line mt-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={mainForm.image} alt="Preview" className="w-12 h-12 rounded object-cover border border-line shrink-0" />
+                <span className="text-[11px] text-forest font-semibold">Image Ready</span>
+              </div>
             )}
-          </label>
+          </div>
 
           <label className="block text-sm">
             <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">Description</span>
@@ -624,15 +644,37 @@ export default function AdminCategoriesPage() {
             />
           </label>
 
-          <label className="block text-sm">
-            <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">Image</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageFile(e, setSubForm)}
-              className="w-full text-xs text-ink2"
-            />
-          </label>
+          <div className="space-y-2 border border-line rounded-lg p-3 bg-canvas/30">
+            <span className="block text-xs uppercase tracking-wider text-ink2 font-semibold">Sub-Category Image (File or URL)</span>
+            
+            <div className="grid gap-2">
+              <input
+                type="text"
+                value={subForm.image}
+                onChange={(e) => setSubForm((f) => ({ ...f, image: e.target.value }))}
+                placeholder="Paste Image URL (https://...)"
+                className="w-full border border-line rounded-sm px-3 py-2 text-xs bg-paper outline-none focus:border-forest"
+              />
+              
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[11px] text-ink2 uppercase font-semibold">Or upload file:</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageFile(e, setSubForm)}
+                  className="text-xs text-ink2 flex-1"
+                />
+              </div>
+            </div>
+
+            {subForm.image && (
+              <div className="pt-2 flex items-center gap-3 border-t border-line mt-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={subForm.image} alt="Preview" className="w-12 h-12 rounded object-cover border border-line shrink-0" />
+                <span className="text-[11px] text-forest font-semibold">Image Ready</span>
+              </div>
+            )}
+          </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="ghost" type="button" onClick={() => setAddSubModalOpen(false)}>Cancel</Button>
