@@ -88,13 +88,15 @@ class SellerProductSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Category.objects.all()
     )
+    seller_id = serializers.PrimaryKeyRelatedField(source='seller', read_only=True)
+    seller = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'title', 'sku', 'slug', 'description', 'price', 'compare_at_price',
             'stock_quantity', 'images', 'attributes', 
-            'category', 'is_published', 'is_deal_of_the_week', 'low_stock_alert'
+            'category', 'seller', 'seller_id', 'is_published', 'is_deal_of_the_week', 'low_stock_alert'
         ]
         extra_kwargs = {
             'sku': {'required': False, 'allow_blank': True},

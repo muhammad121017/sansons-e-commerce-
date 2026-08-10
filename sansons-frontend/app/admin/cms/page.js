@@ -170,11 +170,18 @@ function AdminCmsPageInner() {
     };
 
     try {
-      await api.post("dashboard/cms/", payload);
+      await Promise.all([
+        api.post("dashboard/cms/", payload),
+        api.post("dashboard/settings/", {
+          support_email: footerContent.contact?.email,
+          support_phone: footerContent.contact?.phone,
+          store_address: footerContent.contact?.address,
+        }),
+      ]);
       try {
         localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(payload));
       } catch (e) {}
-      showToast("CMS Changes & Featured selections saved to database!", "success");
+      showToast("CMS Changes & Contact details saved to database!", "success");
     } catch (err) {
       try {
         localStorage.setItem(CMS_STORAGE_KEY, JSON.stringify(payload));

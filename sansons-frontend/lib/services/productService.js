@@ -58,6 +58,8 @@ function mapProduct(p) {
     },
     isPublished: p.is_published ?? true,
     is_published: p.is_published ?? true,
+    sellerId: p.seller_id || (typeof p.seller === 'string' ? p.seller : p.seller?.id) || '',
+    seller: p.seller || '',
     deliveryEstimate: '3–5 business days',
     returnPolicy: '30-day free returns'
   };

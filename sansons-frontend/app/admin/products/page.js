@@ -77,7 +77,8 @@ function AdminProductsPage() {
     if (stockFilter === "low") matchesStock = p.stock > 0 && p.stock <= 5;
     if (stockFilter === "out") matchesStock = p.stock === 0;
     if (stockFilter === "in") matchesStock = p.stock > 5;
-    return matchesQuery && matchesCategory && matchesStock;
+    const matchesSeller = sellerFilter === "all" || String(p.sellerId) === String(sellerFilter) || String(p.seller) === String(sellerFilter);
+    return matchesQuery && matchesCategory && matchesStock && matchesSeller;
   });
 
   const handleDelete = async (id) => {
