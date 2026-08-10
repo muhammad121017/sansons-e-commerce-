@@ -60,16 +60,21 @@ class ProductListView(generics.ListAPIView):
             query = SearchQuery(search_term)
             queryset = queryset.annotate(search=vector).filter(search=query)
 
-        # 2. Deal of the Week filter support
+        # 2. Seller filter support
+        seller_param = query_params.get('seller') or query_params.get('seller_id')
+        if seller_param:
+            queryset = queryset.filter(seller_id=seller_param)
+
+        # 3. Deal of the Week filter support
         deal_param = query_params.get('is_deal_of_the_week', None)
         if deal_param is not None:
             is_deal = deal_param.lower() in ['true', '1']
             queryset = queryset.filter(is_deal_of_the_week=is_deal)
 
-        # 3. JSONB Dynamic Querying via GIN Index (safeguarded system parameters)
+        # 4. JSONB Dynamic Querying via GIN Index (safeguarded system parameters)
         system_reserved_params = {
             'page', 'page_size', 'search', 'ordering', 'category', 'category__slug', 
-            'is_deal_of_the_week', 'format', '_rsc', 'limit', 'offset', 'ts'
+            'seller', 'seller_id', 'is_deal_of_the_week', 'format', '_rsc', 'limit', 'offset', 'ts'
         }
         for key, value in query_params.items():
             if key not in system_reserved_params and value:
@@ -307,9 +312,15 @@ class SellerProductListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role != 'seller':
-            return Product.objects.filter(deleted_at__isnull=True)
-        return Product.objects.filter(seller=user, deleted_at__isnull=True)
+        queryset = Product.objects.filter(deleted_at__isnull=True)
+
+        seller_id = self.request.query_params.get('seller_id') or self.request.query_params.get('seller')
+        if seller_id and seller_id != 'all':
+            queryset = queryset.filter(seller_id=seller_id)
+        elif user.role == 'seller':
+            queryset = queryset.filter(seller=user)
+
+        return queryset
 
     def perform_create(self, serializer):
         from django.contrib.auth import get_user_model
@@ -612,8 +623,16 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance.delete()
 
 
+class IsAdminRole(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user 
+            and request.user.is_authenticated 
+            and (request.user.role == 'admin' or request.user.is_staff or request.user.is_superuser)
+        )
+
 class CategoryModerateView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def post(self, request, pk):
         from dashboard.models import log_audit_action

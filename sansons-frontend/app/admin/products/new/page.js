@@ -167,9 +167,17 @@ function ProductFormInner() {
             <Field label="SKU" value={form.sku} onChange={(v) => update({ sku: v })} />
 
             <label className="block text-sm">
-              <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5 font-semibold">
-                Target Category / Sub-Category *
-              </span>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="block text-xs uppercase tracking-wider text-ink2 font-semibold">
+                  Target Category / Sub-Category *
+                </span>
+                <Link
+                  href="/admin/categories"
+                  className="text-[11px] text-forest font-semibold hover:underline flex items-center gap-1"
+                >
+                  <Plus size={12} /> Request New Category to Admin
+                </Link>
+              </div>
               <select
                 value={form.category}
                 onChange={(e) => update({ category: e.target.value })}

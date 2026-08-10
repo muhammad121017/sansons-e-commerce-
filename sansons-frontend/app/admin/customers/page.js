@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, UserPlus, ShieldAlert, Edit, Check, Shield, Lock, CheckSquare, Square, Search } from "lucide-react";
+import { Trash2, UserPlus, ShieldAlert, Edit, Check, Shield, Lock, CheckSquare, Square, Search, Package } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -390,6 +390,15 @@ export default function AdminCustomersPage() {
                         </td>
                         <td className="px-6 py-3.5 text-right">
                           <div className="flex justify-end items-center gap-2">
+                            {u.role === "seller" && (
+                              <Link
+                                href={`/admin/products?seller=${u.id}`}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-paper border border-line text-forest hover:border-forest text-xs font-semibold rounded transition-colors"
+                                title="View Products by this Seller"
+                              >
+                                <Package size={13} /> Seller Products
+                              </Link>
+                            )}
                             <button
                               onClick={() => handleEditClick(u)}
                               aria-label="Edit user and access permissions"

@@ -216,8 +216,14 @@ export default function AdminCategoriesPage() {
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-paper border border-line p-6 rounded-xl">
           <div>
-            <h1 className="text-xl font-bold text-ink font-display">Store Category Hierarchy</h1>
-            <p className="text-xs text-ink2 mt-1">Manage main categories, create nested sub-categories, and add products directly.</p>
+            <h1 className="text-xl font-bold text-ink font-display">
+              {user?.role === "seller" ? "Request Categories & Sub-Categories" : "Store Category Hierarchy"}
+            </h1>
+            <p className="text-xs text-ink2 mt-1">
+              {user?.role === "seller"
+                ? "Request new categories or sub-categories for Admin approval to list your products under."
+                : "Manage main categories, create nested sub-categories, and add products directly."}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -225,7 +231,7 @@ export default function AdminCategoriesPage() {
               variant="primary"
               size="sm"
             >
-              <Plus size={16} /> Add Main Category
+              <Plus size={16} /> {user?.role === "seller" ? "Request Category from Admin" : "Add Main Category"}
             </Button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, Search, AlertTriangle, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
@@ -15,8 +15,13 @@ import api from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/lib/context/ToastContext";
 
-export default function AdminProductsPage() {
+import { useSearchParams } from "next/navigation";
+
+function AdminProductsPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const initialSeller = searchParams.get("seller") || "all";
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,7 +29,7 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [sellers, setSellers] = useState([]);
-  const [sellerFilter, setSellerFilter] = useState("all");
+  const [sellerFilter, setSellerFilter] = useState(initialSeller);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -353,5 +358,13 @@ export default function AdminProductsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminProductsPageWrapper() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-ink2">Loading products catalog...</div>}>
+      <AdminProductsPage />
+    </Suspense>
   );
 }
