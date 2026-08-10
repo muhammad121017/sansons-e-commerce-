@@ -168,20 +168,31 @@ export const getWhyChooseUs = () => wait(mockWhyChooseUs);
 export const getNewsletterContent = () => wait(mockNewsletter);
 export const getFooterContent = async () => {
   try {
-    const response = await api.get('dashboard/cms/');
-    const fc = response.data?.footer_content;
-    if (fc && typeof fc === 'object' && Object.keys(fc).length > 0) {
-      return {
-        description: fc.description || mockFooterContent.description,
-        contact: {
-          email: fc.contact?.email || mockFooterContent.contact.email,
-          phone: fc.contact?.phone || mockFooterContent.contact.phone,
-          address: fc.contact?.address || mockFooterContent.contact.address,
-        },
-        social: Array.isArray(fc.social) && fc.social.length > 0 ? fc.social : mockFooterContent.social,
-        columns: Array.isArray(fc.columns) && fc.columns.length > 0 ? fc.columns : mockFooterContent.columns,
-      };
+    const [cmsRes, settingsRes] = await Promise.allSettled([
+      api.get('dashboard/cms/'),
+      api.get('dashboard/settings/'),
+    ]);
+
+    let fc = null;
+    if (cmsRes.status === 'fulfilled' && cmsRes.value.data?.footer_content) {
+      fc = cmsRes.value.data.footer_content;
     }
+
+    let st = null;
+    if (settingsRes.status === 'fulfilled' && settingsRes.value.data) {
+      st = settingsRes.value.data;
+    }
+
+    const email = fc?.contact?.email || st?.support_email || mockFooterContent.contact.email;
+    const phone = fc?.contact?.phone || st?.support_phone || mockFooterContent.contact.phone;
+    const address = fc?.contact?.address || st?.store_address || mockFooterContent.contact.address;
+
+    return {
+      description: fc?.description || mockFooterContent.description,
+      contact: { email, phone, address },
+      social: Array.isArray(fc?.social) && fc.social.length > 0 ? fc.social : mockFooterContent.social,
+      columns: Array.isArray(fc?.columns) && fc.columns.length > 0 ? fc.columns : mockFooterContent.columns,
+    };
   } catch (e) {}
   return mockFooterContent;
 };

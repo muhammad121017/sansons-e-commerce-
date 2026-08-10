@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, UserPlus, ShieldAlert, Edit, Check, Shield, Lock, CheckSquare, Square } from "lucide-react";
+import { Trash2, UserPlus, ShieldAlert, Edit, Check, Shield, Lock, CheckSquare, Square, Search } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -62,6 +62,10 @@ export default function AdminCustomersPage() {
 
   const { showToast } = useToast();
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
   const loadUsers = () => {
     setLoading(true);
     getAdminUsers()
@@ -78,6 +82,28 @@ export default function AdminCustomersPage() {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Filtered users calculation
+  const filteredUsers = users.filter((u) => {
+    const fullName = `${u.first_name || ""} ${u.last_name || ""}`.toLowerCase();
+    const email = (u.email || "").toLowerCase();
+    const role = (u.role || "").toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+
+    const matchesSearch = !q || fullName.includes(q) || email.includes(q) || role.includes(q);
+    const matchesRole = roleFilter === "all" || role === roleFilter.toLowerCase();
+    const matchesStatus = statusFilter === "all" || (u.status || "").toLowerCase() === statusFilter.toLowerCase();
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  const roleCounts = {
+    all: users.length,
+    admin: users.filter((u) => u.role === "admin").length,
+    seller: users.filter((u) => u.role === "seller").length,
+    purchaser: users.filter((u) => u.role === "purchaser" || u.role === "customer").length,
+    manager: users.filter((u) => u.role.includes("manager") || u.role === "support").length,
+  };
 
   const toggleCreateModule = (modId) => {
     setForm((f) => {
@@ -193,7 +219,118 @@ export default function AdminCustomersPage() {
         </Button>
       </div>
 
-      <div className="p-8">
+      <div className="p-8 space-y-6">
+        {/* Role Quick Filter Pills & Search Bar */}
+        <div className="bg-paper border border-line rounded-md p-5 space-y-4 shadow-soft">
+          {/* Quick Role Badges */}
+          <div className="flex items-center gap-2 overflow-x-auto text-xs pb-1 scrollbar-none">
+            <span className="text-[11px] font-bold text-ink2 uppercase tracking-wider shrink-0 mr-1">Filter Role:</span>
+            <button
+              onClick={() => setRoleFilter("all")}
+              className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all shrink-0 ${
+                roleFilter === "all"
+                  ? "bg-forest text-canvas border-forest shadow-sm"
+                  : "bg-canvas border-line text-ink hover:border-ink"
+              }`}
+            >
+              All Accounts ({roleCounts.all})
+            </button>
+            <button
+              onClick={() => setRoleFilter("seller")}
+              className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all shrink-0 ${
+                roleFilter === "seller"
+                  ? "bg-forest text-canvas border-forest shadow-sm"
+                  : "bg-canvas border-line text-ink hover:border-ink"
+              }`}
+            >
+              Sellers ({roleCounts.seller})
+            </button>
+            <button
+              onClick={() => setRoleFilter("purchaser")}
+              className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all shrink-0 ${
+                roleFilter === "purchaser"
+                  ? "bg-forest text-canvas border-forest shadow-sm"
+                  : "bg-canvas border-line text-ink hover:border-ink"
+              }`}
+            >
+              Purchasers / Guests ({roleCounts.purchaser})
+            </button>
+            <button
+              onClick={() => setRoleFilter("admin")}
+              className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all shrink-0 ${
+                roleFilter === "admin"
+                  ? "bg-forest text-canvas border-forest shadow-sm"
+                  : "bg-canvas border-line text-ink hover:border-ink"
+              }`}
+            >
+              Admins ({roleCounts.admin})
+            </button>
+            <button
+              onClick={() => setRoleFilter("manager")}
+              className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all shrink-0 ${
+                roleFilter === "manager"
+                  ? "bg-forest text-canvas border-forest shadow-sm"
+                  : "bg-canvas border-line text-ink hover:border-ink"
+              }`}
+            >
+              Managers ({roleCounts.manager})
+            </button>
+          </div>
+
+          {/* Search Bar & Dropdown Selects */}
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative flex-1 w-full">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink2" />
+              <input
+                type="text"
+                placeholder="Search users by name, email, or role..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-canvas border border-line rounded-lg pl-9 pr-4 py-2 text-xs text-ink placeholder:text-ink2 outline-none focus:border-forest"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-ink2 hover:text-ink font-semibold"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-44">
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-xs text-ink outline-none focus:border-forest font-medium"
+                >
+                  <option value="all">All Roles ({users.length})</option>
+                  <option value="seller">Seller / Vendor</option>
+                  <option value="purchaser">Purchaser (Customer)</option>
+                  <option value="admin">Admin</option>
+                  <option value="inventory_manager">Inventory Manager</option>
+                  <option value="manager">Store Manager</option>
+                  <option value="support">Support Agent</option>
+                </select>
+              </div>
+
+              <div className="relative flex-1 sm:w-44">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-xs text-ink outline-none focus:border-forest font-medium"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                  <option value="pending_verification">Pending Verification</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {loading ? (
           <div className="text-center py-12 text-ink2 text-sm">Loading user accounts & permissions from database...</div>
         ) : (
@@ -210,14 +347,14 @@ export default function AdminCustomersPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-ink2">
-                      No users found. Click "Create User" to add one.
+                      No users match your search/filter criteria.
                     </td>
                   </tr>
                 ) : (
-                  users.map((u) => {
+                  filteredUsers.map((u) => {
                     const mods = Array.isArray(u.allowed_modules) ? u.allowed_modules : [];
                     return (
                       <tr key={u.id} className="border-t border-line hover:bg-canvas/10 transition-colors">

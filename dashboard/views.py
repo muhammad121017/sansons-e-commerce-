@@ -563,10 +563,12 @@ class SiteSettingsView(APIView):
     def update_settings(self, request):
         settings_obj, _ = SiteSettings.objects.get_or_create(id='default')
         data = request.data
-        if 'store_name' in data:
-            settings_obj.store_name = data['store_name']
         if 'support_email' in data:
             settings_obj.support_email = data['support_email']
+        if 'support_phone' in data:
+            settings_obj.support_phone = data['support_phone']
+        if 'store_address' in data:
+            settings_obj.store_address = data['store_address']
         if 'currency' in data:
             settings_obj.currency = data['currency']
         if 'free_shipping_threshold' in data:
@@ -580,7 +582,7 @@ class SiteSettingsView(APIView):
         settings_obj.save()
         audit_logger.info(f"Site Settings updated by user {request.user.email}")
         
-        changed_fields = [k for k in ['store_name', 'support_email', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode'] if k in data]
+        changed_fields = [k for k in ['store_name', 'support_email', 'support_phone', 'store_address', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode'] if k in data]
         log_audit_action(
             request.user,
             "Settings Updated",
