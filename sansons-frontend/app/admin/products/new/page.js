@@ -14,6 +14,7 @@ import api from "@/lib/api";
 function ProductFormInner() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  const initialCatFromUrl = searchParams.get("subcategory") || searchParams.get("category");
   const router = useRouter();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ function ProductFormInner() {
     name: "",
     brand: "",
     sku: "",
-    category: "",
+    category: initialCatFromUrl || "",
     price: "",
     compareAtPrice: "",
     stock: "",
@@ -41,7 +42,7 @@ function ProductFormInner() {
     api.get("products/categories/").then((res) => {
       const cats = res.data?.results || res.data || [];
       setCategories(cats);
-      if (!id && cats.length > 0) {
+      if (!id && !initialCatFromUrl && cats.length > 0) {
         setForm((f) => ({ ...f, category: cats[0].slug }));
       }
     }).catch(() => {
@@ -52,7 +53,7 @@ function ProductFormInner() {
         { id: "4", slug: "sports-outdoors", name: "Sports & Outdoors" },
       ]);
     });
-  }, [id]);
+  }, [id, initialCatFromUrl]);
 
   useEffect(() => {
     if (id) {
@@ -166,7 +167,9 @@ function ProductFormInner() {
             <Field label="SKU" value={form.sku} onChange={(v) => update({ sku: v })} />
 
             <label className="block text-sm">
-              <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5">Category</span>
+              <span className="block text-xs uppercase tracking-wider text-ink2 mb-1.5 font-semibold">
+                Target Category / Sub-Category *
+              </span>
               <select
                 value={form.category}
                 onChange={(e) => update({ category: e.target.value })}
@@ -174,9 +177,21 @@ function ProductFormInner() {
                 className="w-full border border-line rounded-sm px-3.5 py-2.5 bg-paper outline-none focus:border-forest"
               >
                 {categories.length === 0 && <option value="">Loading categories…</option>}
-                {categories.map((c) => (
-                  <option key={c.id} value={c.slug}>{c.name}</option>
-                ))}
+                {categories
+                  .filter((c) => !c.parent && !c.parent_id)
+                  .map((mainCat) => {
+                    const subs = categories.filter((c) => c.parent === mainCat.id || c.parent_id === mainCat.id);
+                    return (
+                      <optgroup key={mainCat.id} label={`📂 ${mainCat.name}`}>
+                        <option value={mainCat.slug}>👉 {mainCat.name} (Main Category)</option>
+                        {subs.map((sub) => (
+                          <option key={sub.id} value={sub.slug}>
+                            &nbsp;&nbsp;&nbsp;&nbsp;↳ {sub.name} (Sub-Category)
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
               </select>
             </label>
 
