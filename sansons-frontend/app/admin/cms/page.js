@@ -64,7 +64,7 @@ const DEFAULT_FOOTER = {
   ],
 };
 
-const TABS = ["Homepage Sections", "Featured Categories", "Featured Best Sellers", "Hero Slides", "Announcement Bar", "Brand Story", "FAQ", "Footer & Contact Details"];
+const TABS = ["Homepage Sections", "Featured Categories", "Featured Best Sellers", "Hero Featured Products", "Hero Slides", "Announcement Bar", "Brand Story", "FAQ", "Footer & Contact Details"];
 const CMS_STORAGE_KEY = "sansons_cms_config";
 
 export default function AdminCmsPage() {
@@ -90,6 +90,8 @@ function AdminCmsPageInner() {
   const [dbProducts, setDbProducts] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [heroFeaturedProducts, setHeroFeaturedProducts] = useState([]);
+  const [heroSearchQuery, setHeroSearchQuery] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -132,6 +134,7 @@ function AdminCmsPageInner() {
         if (Array.isArray(data.faq_items) && data.faq_items.length > 0) setFaqItems(data.faq_items);
         if (Array.isArray(data.featured_categories)) setSelectedCategories(data.featured_categories);
         if (Array.isArray(data.featured_products)) setSelectedProducts(data.featured_products);
+        if (Array.isArray(data.hero_featured_products)) setHeroFeaturedProducts(data.hero_featured_products);
         if (data.footer_content && typeof data.footer_content === "object" && Object.keys(data.footer_content).length > 0) {
           setFooterContent({
             description: data.footer_content.description || DEFAULT_FOOTER.description,
@@ -166,6 +169,7 @@ function AdminCmsPageInner() {
       faq_items: faqItems,
       featured_categories: selectedCategories,
       featured_products: selectedProducts,
+      hero_featured_products: heroFeaturedProducts,
       footer_content: footerContent,
     };
 
@@ -218,6 +222,20 @@ function AdminCmsPageInner() {
     setSelectedProducts((prev) =>
       prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );
+  };
+
+  const toggleHeroFeaturedProduct = (id, title = "") => {
+    setHeroFeaturedProducts((prev) => {
+      const isCurrentlyFeatured = prev.includes(id);
+      const updated = isCurrentlyFeatured ? prev.filter((p) => p !== id) : [...prev, id];
+      showToast(
+        isCurrentlyFeatured
+          ? `Product "${title || id}" removed from Hero Section`
+          : `Product "${title || id}" is now Featured in Hero Section!`,
+        isCurrentlyFeatured ? "warning" : "success"
+      );
+      return updated;
+    });
   };
 
   return (
@@ -363,6 +381,83 @@ function AdminCmsPageInner() {
                   {dbProducts.length === 0 && (
                     <p className="text-sm text-ink2 py-4 text-center">No products found in database. Create products under the Products menu first.</p>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* 3.5 HERO FEATURED PRODUCTS MANAGER */}
+            {tab === "Hero Featured Products" && (
+              <div className="bg-paper border border-line rounded-md p-6 max-w-4xl space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-medium text-base mb-1">Hero Section Featured Products</h2>
+                    <p className="text-xs text-ink2">
+                      Manage which marketplace products appear in the Hero Section slider. Toggle the switch to feature or remove any product in real time.
+                    </p>
+                  </div>
+                  <div className="relative w-full sm:w-64">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink2" />
+                    <input
+                      type="text"
+                      placeholder="Filter products..."
+                      value={heroSearchQuery}
+                      onChange={(e) => setHeroSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 text-xs border border-line rounded-sm bg-canvas outline-none focus:border-forest"
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-line rounded-md overflow-hidden">
+                  <div className="max-h-[460px] overflow-y-auto divide-y divide-line">
+                    {dbProducts
+                      .filter((p) => (p.title || p.name || "").toLowerCase().includes(heroSearchQuery.toLowerCase()))
+                      .map((prod) => {
+                        const isFeatured = heroFeaturedProducts.includes(prod.id);
+                        return (
+                          <div
+                            key={prod.id}
+                            className={`flex items-center justify-between p-3.5 transition-colors ${
+                              isFeatured ? "bg-forest/5" : "bg-paper hover:bg-canvas2"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="w-12 h-12 rounded-md bg-canvas2 overflow-hidden shrink-0 border border-line/60">
+                                <img
+                                  src={prod.images?.[0] || "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=100"}
+                                  alt={prod.title || prod.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-ink truncate">{prod.title || prod.name}</p>
+                                <div className="flex items-center gap-2 text-xs text-ink2 font-mono">
+                                  <span>{formatCurrency(prod.price)}</span>
+                                  <span>•</span>
+                                  <span>Stock: {prod.stock_quantity ?? prod.stock ?? 10}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Styled Tailwind Switch Toggle */}
+                            <label className="relative inline-flex items-center cursor-pointer gap-2.5 shrink-0 ml-4">
+                              <input
+                                type="checkbox"
+                                checked={isFeatured}
+                                onChange={() => toggleHeroFeaturedProduct(prod.id, prod.title || prod.name)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-10 h-5 bg-line peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-forest"></div>
+                              <span className={`text-xs font-semibold ${isFeatured ? "text-forest" : "text-ink2"}`}>
+                                {isFeatured ? "Featured in Hero" : "Feature in Hero"}
+                              </span>
+                            </label>
+                          </div>
+                        );
+                      })}
+                    {dbProducts.length === 0 && (
+                      <p className="text-sm text-ink2 py-8 text-center">No products found in database. Create products under the Products menu first.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
