@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { GripVertical, Eye, EyeOff, Save, Plus, Trash2, CheckSquare, Square } from "lucide-react";
+import { GripVertical, Eye, EyeOff, Save, Plus, Trash2, CheckSquare, Square, Search } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Button from "@/components/ui/Button";
 import { heroSlides as initialHero, announcementBar as initialAnnouncement, faq as initialFaq, brandStory as initialStory } from "@/lib/data/cms";

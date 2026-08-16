@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
+import Link from "next/link";
 import { Trash2, UserPlus, ShieldAlert, Edit, Check, Shield, Lock, CheckSquare, Square, Search, Package } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
@@ -70,11 +71,12 @@ function AdminCustomersPage() {
     setLoading(true);
     getAdminUsers()
       .then((data) => {
-        setUsers(data);
+        setUsers(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Failed to load users:", err);
+        setUsers([]);
         setLoading(false);
       });
   };
@@ -83,8 +85,9 @@ function AdminCustomersPage() {
     loadUsers();
   }, []);
 
-  // Filtered users calculation
+  // Filtered users calculation with strict null safety
   const filteredUsers = users.filter((u) => {
+    if (!u) return false;
     const fullName = `${u.first_name || ""} ${u.last_name || ""}`.toLowerCase();
     const email = (u.email || "").toLowerCase();
     const role = (u.role || "").toLowerCase();
@@ -99,10 +102,10 @@ function AdminCustomersPage() {
 
   const roleCounts = {
     all: users.length,
-    admin: users.filter((u) => u.role === "admin").length,
-    seller: users.filter((u) => u.role === "seller").length,
-    purchaser: users.filter((u) => u.role === "purchaser" || u.role === "customer").length,
-    manager: users.filter((u) => u.role.includes("manager") || u.role === "support").length,
+    admin: users.filter((u) => u?.role === "admin").length,
+    seller: users.filter((u) => u?.role === "seller").length,
+    purchaser: users.filter((u) => u?.role === "purchaser" || u?.role === "customer").length,
+    manager: users.filter((u) => (u?.role || "").toLowerCase().includes("manager") || u?.role === "support").length,
   };
 
   const toggleCreateModule = (modId) => {
