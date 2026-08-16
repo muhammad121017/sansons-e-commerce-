@@ -79,7 +79,6 @@ const DEFAULT_HERO_PRODUCTS = [
   }
 ];
 
-// Marquee Highlights Data
 const MARQUEE_ITEMS = [
   { icon: Truck, text: "Express Shipping Nationwide" },
   { icon: ShieldCheck, text: "100% Verified Boutique Sellers" },
@@ -87,11 +86,9 @@ const MARQUEE_ITEMS = [
   { icon: Award, text: "Guaranteed Authenticity On All Items" },
 ];
 
-export default function Hero({ slides: cmsSlides }) {
+export default function Hero() {
   const [products, setProducts] = useState(DEFAULT_HERO_PRODUCTS);
-  const [isPaused, setIsPaused] = useState(false);
 
-  // Fetch live products (filtered by admin-selected Hero Featured Products)
   useEffect(() => {
     let cmsConfig = null;
     try {
@@ -126,9 +123,8 @@ export default function Hero({ slides: cmsSlides }) {
       .catch(() => {});
   }, []);
 
-  // Triple products array for continuous infinite sliding
-  const slidingTrack1 = [...products, ...products, ...products];
-  const slidingTrack2 = [...products].reverse().concat([...products].reverse(), [...products].reverse());
+  // Duplicate for seamless 100% loop
+  const loopProducts = [...products, ...products];
 
   return (
     <section className="relative bg-gradient-to-b from-[#F4F0EA] via-[#EDE7DE] to-[#F4F0EA] text-ink border-b border-line/60 overflow-hidden py-8 lg:py-12">
@@ -227,60 +223,26 @@ export default function Hero({ slides: cmsSlides }) {
           </motion.div>
         </div>
 
-        {/* RIGHT COLUMN: CONTINUOUS WARM LUXURY SLIDING MARQUEE */}
-        <div
-          className="lg:col-span-7 relative space-y-4 py-2 overflow-hidden"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          {/* Vignette Edge Blurs */}
-          <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
-          <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
+        {/* RIGHT COLUMN: SILKY 60FPS HARDWARE-ACCELERATED GPU SLIDING MARQUEE */}
+        <div className="lg:col-span-7 relative py-2 overflow-hidden group/hero">
+          
+          {/* Edge Blur Fades */}
+          <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
 
-          {/* Track 1: Sliding Left */}
-          <div className="flex overflow-hidden">
-            <motion.div
-              className="flex gap-4 shrink-0"
-              animate={isPaused ? { x: undefined } : { x: ["0%", "-33.333%"] }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 22,
-                  ease: "linear",
-                },
-              }}
-            >
-              {slidingTrack1.map((item, idx) => (
-                <SlidingHeroCard key={`track1-${item.id}-${idx}`} item={item} />
+          {/* GPU Hardware Accelerated Smooth Marquee Track */}
+          <div className="flex overflow-hidden py-2">
+            <div className="flex gap-4 shrink-0 animate-marquee-fast group-hover/hero:[animation-play-state:paused] transform-gpu will-change-transform">
+              {loopProducts.map((item, idx) => (
+                <SlidingHeroCard key={`hero-card-${item.id}-${idx}`} item={item} />
               ))}
-            </motion.div>
+            </div>
           </div>
 
-          {/* Track 2: Sliding Right */}
-          <div className="flex overflow-hidden">
-            <motion.div
-              className="flex gap-4 shrink-0"
-              animate={isPaused ? { x: undefined } : { x: ["-33.333%", "0%"] }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  duration: 25,
-                  ease: "linear",
-                },
-              }}
-            >
-              {slidingTrack2.map((item, idx) => (
-                <SlidingHeroCard key={`track2-${item.id}-${idx}`} item={item} />
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Micro-interaction Pause Tip */}
-          <div className="text-center pt-1">
-            <span className="inline-block text-[10px] font-mono text-ink2/80 uppercase tracking-widest bg-paper/80 px-3 py-0.5 rounded-full border border-line shadow-xs">
-              {isPaused ? "⏸ Sliding Paused • Click Card to View Item" : "✦ Hover Over Sliding Cards To Pause & Explore"}
+          {/* Pause Indicator */}
+          <div className="text-center pt-2">
+            <span className="inline-block text-[10px] font-mono text-ink2/80 uppercase tracking-widest bg-paper/90 px-3 py-0.5 rounded-full border border-line shadow-xs transition-opacity opacity-75 group-hover/hero:opacity-100">
+              ✦ Hover Cards To Pause • Click To View Item
             </span>
           </div>
 
@@ -290,67 +252,70 @@ export default function Hero({ slides: cmsSlides }) {
 
       {/* BOTTOM MARQUEE TICKER BAR */}
       <div className="mt-4 bg-paper/90 border-t border-line/60 py-2.5 overflow-hidden">
-        <motion.div
-          className="flex gap-8 shrink-0 whitespace-nowrap"
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ repeat: Infinity, duration: 26, ease: "linear" }}
-        >
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => {
-            const IconComponent = item.icon;
-            return (
-              <div key={idx} className="flex items-center gap-2 text-xs font-mono tracking-wider text-ink2">
-                <IconComponent size={13} className="text-forest shrink-0" />
-                <span className="font-medium text-ink/90">{item.text}</span>
-                <span className="text-line/80 ml-4">•</span>
-              </div>
-            );
-          })}
-        </motion.div>
+        <div className="flex overflow-hidden">
+          <div className="flex gap-8 shrink-0 whitespace-nowrap animate-marquee-slow transform-gpu will-change-transform">
+            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <div key={idx} className="flex items-center gap-2 text-xs font-mono tracking-wider text-ink2">
+                  <IconComponent size={13} className="text-forest shrink-0" />
+                  <span className="font-medium text-ink/90">{item.text}</span>
+                  <span className="text-line/80 ml-4">•</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
+
+      {/* Custom CSS Keyframe Animations for Hardware 60FPS Compositing */}
+      <style jsx global>{`
+        @keyframes marqueeSmooth {
+          0% { transform: translate3d(0, 0, 0); }
+          100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .animate-marquee-fast {
+          animation: marqueeSmooth 24s linear infinite;
+        }
+        .animate-marquee-slow {
+          animation: marqueeSmooth 35s linear infinite;
+        }
+      `}</style>
 
     </section>
   );
 }
 
-// Individual Sliding Card (Warm Luxury Cream Theme)
+// Optimized 60FPS Card (No backdrop-blur filter on moving container for zero GPU jitter)
 function SlidingHeroCard({ item }) {
   return (
-    <motion.div
-      whileHover={{ 
-        scale: 1.03,
-        y: -4,
-        transition: { type: "spring", stiffness: 400, damping: 20 }
-      }}
-      className="relative w-56 sm:w-64 shrink-0 group rounded-xl bg-paper border border-line/70 p-3 shadow-soft backdrop-blur-md transition-all duration-300 hover:border-forest/40 hover:shadow-hover hover:bg-paper"
-    >
+    <div className="relative w-52 sm:w-60 shrink-0 rounded-xl bg-paper border border-line/80 p-3 shadow-sm transition-all duration-300 hover:border-forest hover:shadow-md hover:scale-[1.03] group/card">
       <Link href={item.link || `/product/${item.slug || item.id}`} className="block space-y-2.5">
         
         {/* Product Image Container */}
         <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-canvas2 border border-line/50">
-          <Image
+          <img
             src={item.image}
             alt={item.title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
-            sizes="(max-width: 768px) 220px, 260px"
+            loading="eager"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-108"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent opacity-30 group-hover:opacity-10 transition-opacity" />
 
           {/* Category Tag */}
-          <div className="absolute top-2 left-2 bg-paper/90 backdrop-blur-md border border-line px-2 py-0.5 rounded text-[9px] uppercase font-bold text-ink tracking-wider shadow-xs">
+          <div className="absolute top-2 left-2 bg-paper/95 border border-line px-2 py-0.5 rounded text-[9px] uppercase font-bold text-ink tracking-wider shadow-xs">
             {item.category}
           </div>
 
           {/* Rating Tag */}
-          <div className="absolute top-2 right-2 bg-paper/90 backdrop-blur-md border border-line px-2 py-0.5 rounded text-[9px] font-semibold text-brassDark flex items-center gap-1 shadow-xs">
+          <div className="absolute top-2 right-2 bg-paper/95 border border-line px-2 py-0.5 rounded text-[9px] font-semibold text-brassDark flex items-center gap-1 shadow-xs">
             <Star size={10} className="fill-brass text-brass" />
             <span>{item.rating}</span>
           </div>
         </div>
 
-        {/* Details & Warm Pricing Typography */}
+        {/* Details & Pricing */}
         <div className="space-y-1 text-left px-1">
-          <h3 className="text-xs sm:text-sm font-semibold text-ink group-hover:text-forest transition-colors line-clamp-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-ink group-hover/card:text-forest transition-colors line-clamp-1">
             {item.title}
           </h3>
           
@@ -366,14 +331,14 @@ function SlidingHeroCard({ item }) {
               )}
             </div>
 
-            <span className="text-[10px] font-semibold text-forest group-hover:text-forestDark flex items-center gap-1 transition-colors">
+            <span className="text-[10px] font-semibold text-forest group-hover/card:text-forestDark flex items-center gap-1 transition-colors">
               <span>View</span>
-              <ArrowRight size={11} className="transform group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight size={11} className="transform group-hover/card:translate-x-0.5 transition-transform" />
             </span>
           </div>
         </div>
 
       </Link>
-    </motion.div>
+    </div>
   );
 }
