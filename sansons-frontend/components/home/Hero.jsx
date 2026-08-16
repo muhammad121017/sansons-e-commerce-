@@ -112,27 +112,27 @@ export default function Hero({ slides }) {
   const marqueeListTrack2 = [...products].reverse().concat([...products].reverse(), [...products].reverse());
 
   return (
-    <section className="relative min-h-[90vh] py-16 lg:py-24 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden flex items-center">
+    <section className="relative min-h-[540px] lg:min-h-[580px] py-6 lg:py-10 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-white overflow-hidden flex items-center">
       {/* Ambient background glow effects */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-emerald-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-600/15 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-6 right-1/4 w-[450px] h-[450px] bg-amber-600/10 rounded-full blur-[140px] pointer-events-none" />
       
       {/* Decorative Grid Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 w-full relative z-10 grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      <div className="max-w-7xl mx-auto px-6 w-full relative z-10 grid lg:grid-cols-12 gap-8 lg:gap-6 items-center">
         
         {/* LEFT COLUMN: Editorial & Headline */}
-        <div className="lg:col-span-5 space-y-8 text-left">
+        <div className="lg:col-span-5 space-y-5 text-left">
           
           {/* Luxury Badge */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-widest backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold uppercase tracking-widest backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.15)]"
           >
-            <Sparkles size={14} className="text-amber-400 animate-pulse" />
+            <Sparkles size={13} className="text-amber-400 animate-pulse" />
             <span>Curated Multi-Vendor Luxury Marketplace</span>
           </motion.div>
 
@@ -141,16 +141,16 @@ export default function Hero({ slides }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="space-y-4"
+            className="space-y-3"
           >
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-100 leading-[1.08]">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-zinc-100 leading-[1.1]">
               Elevated Luxury. <br />
               <span className="bg-gradient-to-r from-emerald-400 via-teal-200 to-amber-300 bg-clip-text text-transparent">
                 Curated For Perfection.
               </span>
             </h1>
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-lg font-light">
-              Discover verified boutique sellers, rare luxury watches, artisan leathercraft, and cutting-edge electronics with instant nationwide shipping and guaranteed authenticity.
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed max-w-lg font-light">
+              Discover verified boutique sellers, rare luxury watches, artisan leathercraft, and cutting-edge electronics with instant nationwide shipping.
             </p>
           </motion.div>
 
@@ -282,11 +282,11 @@ function MarqueeProductCard({ item }) {
         y: -4,
         transition: { type: "spring", stiffness: 400, damping: 20 }
       }}
-      className="relative w-64 sm:w-72 shrink-0 group rounded-xl bg-zinc-900/90 border border-zinc-800/90 p-3.5 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/50 hover:bg-zinc-900 hover:shadow-[0_0_35px_rgba(16,185,129,0.25)]"
+      className="relative w-56 sm:w-64 shrink-0 group rounded-xl bg-zinc-900/90 border border-zinc-800/90 p-2.5 backdrop-blur-md transition-all duration-300 hover:border-emerald-500/50 hover:bg-zinc-900 hover:shadow-[0_0_35px_rgba(16,185,129,0.25)]"
     >
-      <Link href={item.link || `/product/${item.slug || item.id}`} className="block space-y-3">
+      <Link href={item.link || `/product/${item.slug || item.id}`} className="block space-y-2.5">
         {/* Image Container with Badges */}
-        <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800/80">
+        <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-zinc-950 border border-zinc-800/80">
           <Image
             src={item.image}
             alt={item.title}
