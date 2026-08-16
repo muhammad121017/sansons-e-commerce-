@@ -3,61 +3,79 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Truck, RotateCcw, Award } from "lucide-react";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight, ShieldCheck, Truck, RotateCcw, Award, Star } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { fetchBestSellers } from "@/lib/services/productService";
 import { formatCurrency } from "@/lib/utils";
 
-// Fallback Featured Hero Slides
-const DEFAULT_HERO_SLIDES = [
+// Fallback Featured Products
+const DEFAULT_HERO_PRODUCTS = [
   {
-    id: "slide-1",
+    id: "prod-1",
     slug: "luxury-automatic-chronograph-watch",
     title: "Luxury Automatic Chronograph Watch",
-    subtitle: "Precision horology handcrafted with sapphire crystal & Swiss movement.",
     price: 450,
     compareAtPrice: 650,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop",
     link: "/product/luxury-automatic-chronograph-watch",
-    category: "Horology Collection",
-    badge: "Bestseller"
+    category: "Horology",
+    rating: 4.9
   },
   {
-    id: "slide-2",
+    id: "prod-2",
     slug: "iphone-17-pro",
     title: "iPhone 17 Pro Max Titanium",
-    subtitle: "Next-gen performance, titanium alloy enclosure & pro camera system.",
     price: 1200,
     compareAtPrice: 1400,
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop",
     link: "/product/iphone-17-pro",
     category: "Tech & Mobile",
-    badge: "Featured Tech"
+    rating: 5.0
   },
   {
-    id: "slide-3",
+    id: "prod-3",
     slug: "handcrafted-leather-weekend-bag",
     title: "Artisan Full-Grain Leather Duffle",
-    subtitle: "Hand-stitched genuine leather crafted for timeless travel elegance.",
     price: 280,
     compareAtPrice: 350,
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop",
     link: "/product/handcrafted-leather-weekend-bag",
     category: "Leathercraft",
-    badge: "Artisan Special"
+    rating: 4.9
   },
   {
-    id: "slide-4",
+    id: "prod-4",
     slug: "wireless-noise-canceling-headphones",
     title: "Acoustic Noise-Canceling Headphones",
-    subtitle: "Immersive spatial audio with high-fidelity acoustic driver tuning.",
     price: 349,
     compareAtPrice: 420,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop",
     link: "/product/wireless-noise-canceling-headphones",
-    category: "Audio Engineering",
-    badge: "New Release"
+    category: "Audio",
+    rating: 4.8
+  },
+  {
+    id: "prod-5",
+    slug: "ergonomic-performance-running-shoes",
+    title: "Ergonomic Performance Running Shoes",
+    price: 110,
+    compareAtPrice: 150,
+    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop",
+    link: "/product/ergonomic-performance-running-shoes",
+    category: "Footwear",
+    rating: 4.7
+  },
+  {
+    id: "prod-6",
+    slug: "smart-led-ambient-floor-lamp",
+    title: "Smart LED Ambient Floor Lamp",
+    price: 89.99,
+    compareAtPrice: 120,
+    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop",
+    link: "/product/smart-led-ambient-floor-lamp",
+    category: "Home & Living",
+    rating: 4.8
   }
 ];
 
@@ -70,8 +88,7 @@ const MARQUEE_ITEMS = [
 ];
 
 export default function Hero({ slides: cmsSlides }) {
-  const [heroSlides, setHeroSlides] = useState(DEFAULT_HERO_SLIDES);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [products, setProducts] = useState(DEFAULT_HERO_PRODUCTS);
   const [isPaused, setIsPaused] = useState(false);
 
   // Fetch live products (filtered by admin-selected Hero Featured Products)
@@ -92,43 +109,35 @@ export default function Hero({ slides: cmsSlides }) {
             if (filtered.length > 0) selected = filtered;
           }
 
-          const mapped = selected.slice(0, 6).map((p, idx) => ({
-            id: p.id || `slide-${idx}`,
+          const mapped = selected.map((p, idx) => ({
+            id: p.id || `prod-${idx}`,
             slug: p.slug || p.id,
             title: p.name || p.title || "Luxury Item",
-            subtitle: p.description?.slice(0, 80) || DEFAULT_HERO_SLIDES[idx % DEFAULT_HERO_SLIDES.length].subtitle,
             price: p.price || 199,
             compareAtPrice: p.compareAtPrice || null,
-            image: p.images?.[0] || DEFAULT_HERO_SLIDES[idx % DEFAULT_HERO_SLIDES.length].image,
+            image: p.images?.[0] || DEFAULT_HERO_PRODUCTS[idx % DEFAULT_HERO_PRODUCTS.length].image,
             link: `/product/${p.slug || p.id}`,
-            category: p.category || "Curated Collection",
-            badge: idx === 0 ? "Featured in Hero" : "Selected Item"
+            category: p.category || "Featured",
+            rating: p.rating || 4.9
           }));
-          setHeroSlides(mapped);
+          setProducts(mapped);
         }
       })
       .catch(() => {});
   }, []);
 
-  // Auto slide advance every 5.5 seconds (pauses on hover)
-  useEffect(() => {
-    if (isPaused || !heroSlides.length) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % heroSlides.length);
-    }, 5500);
-    return () => clearInterval(interval);
-  }, [isPaused, heroSlides.length]);
-
-  const activeSlide = heroSlides[currentIndex] || DEFAULT_HERO_SLIDES[0];
+  // Triple products array for continuous infinite sliding
+  const slidingTrack1 = [...products, ...products, ...products];
+  const slidingTrack2 = [...products].reverse().concat([...products].reverse(), [...products].reverse());
 
   return (
-    <section className="relative bg-gradient-to-b from-[#F4F0EA] via-[#EDE7DE] to-[#F4F0EA] text-ink border-b border-line/60 overflow-hidden">
-      {/* Subtle Background Lighting Orbs */}
+    <section className="relative bg-gradient-to-b from-[#F4F0EA] via-[#EDE7DE] to-[#F4F0EA] text-ink border-b border-line/60 overflow-hidden py-8 lg:py-12">
+      {/* Background Ambient Orbs */}
       <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-forest/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-[350px] h-[350px] bg-brass/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Hero Container */}
-      <div className="max-w-7xl mx-auto px-6 py-8 lg:py-12 relative z-10 grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+      {/* Main Hero Grid */}
+      <div className="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
         
         {/* LEFT COLUMN: Editorial Copy & CTAs */}
         <div className="lg:col-span-5 space-y-5 text-left">
@@ -138,7 +147,7 @@ export default function Hero({ slides: cmsSlides }) {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-paper/80 border border-line text-forest text-[11px] font-semibold uppercase tracking-widest backdrop-blur-md shadow-sm"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-paper/90 border border-line text-forest text-[11px] font-semibold uppercase tracking-widest backdrop-blur-md shadow-sm"
           >
             <Sparkles size={13} className="text-brass animate-pulse" />
             <span>Curated Multi-Vendor Marketplace</span>
@@ -190,7 +199,7 @@ export default function Hero({ slides: cmsSlides }) {
             </Button>
           </motion.div>
 
-          {/* Trust Highlights */}
+          {/* Trust Guarantees */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -218,143 +227,69 @@ export default function Hero({ slides: cmsSlides }) {
           </motion.div>
         </div>
 
-        {/* RIGHT COLUMN: Compact Warm Showcase + Interactive Thumbnails */}
+        {/* RIGHT COLUMN: CONTINUOUS WARM LUXURY SLIDING MARQUEE */}
         <div
-          className="lg:col-span-7 relative"
+          className="lg:col-span-7 relative space-y-4 py-2 overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          <div className="relative rounded-2xl bg-paper border border-line p-4 lg:p-5 shadow-medium backdrop-blur-xl overflow-hidden">
-            
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeSlide.id}
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -18 }}
-                transition={{ duration: 0.45, ease: "easeInOut" }}
-                className="grid sm:grid-cols-12 gap-5 items-center"
-              >
-                {/* Slide Image (7 cols) */}
-                <div className="sm:col-span-7 relative aspect-[4/3] rounded-xl overflow-hidden bg-canvas2 border border-line/60 group shadow-sm">
-                  <Image
-                    src={activeSlide.image}
-                    alt={activeSlide.title}
-                    fill
-                    priority
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 400px"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent opacity-40" />
-                  
-                  {/* Category Tag */}
-                  <div className="absolute top-3 left-3 bg-paper/90 backdrop-blur-md border border-line px-2.5 py-1 rounded-full text-[9px] uppercase font-bold text-ink tracking-wider shadow-xs">
-                    {activeSlide.category}
-                  </div>
-                  
-                  {/* Badge */}
-                  {activeSlide.badge && (
-                    <div className="absolute top-3 right-3 bg-brass/20 border border-brass/40 text-brassDark px-2.5 py-1 rounded-full text-[9px] uppercase font-bold tracking-wider backdrop-blur-md">
-                      {activeSlide.badge}
-                    </div>
-                  )}
-                </div>
+          {/* Vignette Edge Blurs */}
+          <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
 
-                {/* Slide Details (5 cols) */}
-                <div className="sm:col-span-5 space-y-3 text-left p-1">
-                  <span className="text-[10px] uppercase font-mono tracking-widest text-ink2 font-semibold">
-                    Featured {currentIndex + 1} of {heroSlides.length}
-                  </span>
-                  
-                  <h3 className="text-base font-semibold text-ink leading-snug line-clamp-2">
-                    {activeSlide.title}
-                  </h3>
-                  
-                  <p className="text-xs text-ink2 line-clamp-2 font-normal">
-                    {activeSlide.subtitle}
-                  </p>
-
-                  <div className="pt-1 flex items-baseline gap-2">
-                    <span className="font-mono text-base font-bold text-forest">
-                      {formatCurrency(activeSlide.price)}
-                    </span>
-                    {activeSlide.compareAtPrice && (
-                      <span className="font-mono text-xs text-ink2/70 line-through">
-                        {formatCurrency(activeSlide.compareAtPrice)}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="pt-2">
-                    <Button
-                      as={Link}
-                      href={activeSlide.link}
-                      variant="primary"
-                      size="sm"
-                      className="w-full !bg-forest hover:!bg-forestDark !text-canvas font-semibold border-0 shadow-md flex items-center justify-center gap-1.5"
-                    >
-                      <span>Shop This Item</span>
-                      <ArrowRight size={13} />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* INTERACTIVE THUMBNAIL ROW & SLIDER CONTROLS */}
-            <div className="mt-4 pt-3.5 border-t border-line/70 flex items-center justify-between gap-4">
-              
-              {/* Image Preview Thumbnails */}
-              <div className="flex items-center gap-2 overflow-x-auto py-1">
-                {heroSlides.map((s, idx) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setCurrentIndex(idx)}
-                    aria-label={`Preview ${s.title}`}
-                    className={`relative w-12 h-12 rounded-lg overflow-hidden border transition-all duration-300 shrink-0 ${
-                      idx === currentIndex
-                        ? "border-forest ring-2 ring-forest/30 shadow-md scale-105"
-                        : "border-line/70 opacity-60 hover:opacity-100 hover:border-ink"
-                    }`}
-                  >
-                    <Image
-                      src={s.image}
-                      alt={s.title}
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                    />
-                  </button>
-                ))}
-              </div>
-
-              {/* Prev / Next Arrows */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  onClick={() => setCurrentIndex((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
-                  aria-label="Previous Slide"
-                  className="p-2 rounded-lg bg-canvas border border-line text-ink hover:bg-paper hover:border-forest transition-colors shadow-xs"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={() => setCurrentIndex((prev) => (prev + 1) % heroSlides.length)}
-                  aria-label="Next Slide"
-                  className="p-2 rounded-lg bg-canvas border border-line text-ink hover:bg-paper hover:border-forest transition-colors shadow-xs"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-
-            </div>
-
+          {/* Track 1: Sliding Left */}
+          <div className="flex overflow-hidden">
+            <motion.div
+              className="flex gap-4 shrink-0"
+              animate={isPaused ? { x: undefined } : { x: ["0%", "-33.333%"] }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 22,
+                  ease: "linear",
+                },
+              }}
+            >
+              {slidingTrack1.map((item, idx) => (
+                <SlidingHeroCard key={`track1-${item.id}-${idx}`} item={item} />
+              ))}
+            </motion.div>
           </div>
+
+          {/* Track 2: Sliding Right */}
+          <div className="flex overflow-hidden">
+            <motion.div
+              className="flex gap-4 shrink-0"
+              animate={isPaused ? { x: undefined } : { x: ["-33.333%", "0%"] }}
+              transition={{
+                x: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 25,
+                  ease: "linear",
+                },
+              }}
+            >
+              {slidingTrack2.map((item, idx) => (
+                <SlidingHeroCard key={`track2-${item.id}-${idx}`} item={item} />
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Micro-interaction Pause Tip */}
+          <div className="text-center pt-1">
+            <span className="inline-block text-[10px] font-mono text-ink2/80 uppercase tracking-widest bg-paper/80 px-3 py-0.5 rounded-full border border-line shadow-xs">
+              {isPaused ? "⏸ Sliding Paused • Click Card to View Item" : "✦ Hover Over Sliding Cards To Pause & Explore"}
+            </span>
+          </div>
+
         </div>
 
       </div>
 
-      {/* BOTTOM MARQUEE TICKER BAR (Warm Cream Theme) */}
-      <div className="bg-paper/90 border-t border-line/60 py-2.5 overflow-hidden">
+      {/* BOTTOM MARQUEE TICKER BAR */}
+      <div className="mt-4 bg-paper/90 border-t border-line/60 py-2.5 overflow-hidden">
         <motion.div
           className="flex gap-8 shrink-0 whitespace-nowrap"
           animate={{ x: ["0%", "-50%"] }}
@@ -374,5 +309,71 @@ export default function Hero({ slides: cmsSlides }) {
       </div>
 
     </section>
+  );
+}
+
+// Individual Sliding Card (Warm Luxury Cream Theme)
+function SlidingHeroCard({ item }) {
+  return (
+    <motion.div
+      whileHover={{ 
+        scale: 1.03,
+        y: -4,
+        transition: { type: "spring", stiffness: 400, damping: 20 }
+      }}
+      className="relative w-56 sm:w-64 shrink-0 group rounded-xl bg-paper border border-line/70 p-3 shadow-soft backdrop-blur-md transition-all duration-300 hover:border-forest/40 hover:shadow-hover hover:bg-paper"
+    >
+      <Link href={item.link || `/product/${item.slug || item.id}`} className="block space-y-2.5">
+        
+        {/* Product Image Container */}
+        <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-canvas2 border border-line/50">
+          <Image
+            src={item.image}
+            alt={item.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            sizes="(max-width: 768px) 220px, 260px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent opacity-30 group-hover:opacity-10 transition-opacity" />
+
+          {/* Category Tag */}
+          <div className="absolute top-2 left-2 bg-paper/90 backdrop-blur-md border border-line px-2 py-0.5 rounded text-[9px] uppercase font-bold text-ink tracking-wider shadow-xs">
+            {item.category}
+          </div>
+
+          {/* Rating Tag */}
+          <div className="absolute top-2 right-2 bg-paper/90 backdrop-blur-md border border-line px-2 py-0.5 rounded text-[9px] font-semibold text-brassDark flex items-center gap-1 shadow-xs">
+            <Star size={10} className="fill-brass text-brass" />
+            <span>{item.rating}</span>
+          </div>
+        </div>
+
+        {/* Details & Warm Pricing Typography */}
+        <div className="space-y-1 text-left px-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-ink group-hover:text-forest transition-colors line-clamp-1">
+            {item.title}
+          </h3>
+          
+          <div className="flex items-center justify-between pt-0.5">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-mono text-xs sm:text-sm font-bold text-forest">
+                {formatCurrency(item.price)}
+              </span>
+              {item.compareAtPrice && (
+                <span className="font-mono text-[10px] text-ink2/70 line-through">
+                  {formatCurrency(item.compareAtPrice)}
+                </span>
+              )}
+            </div>
+
+            <span className="text-[10px] font-semibold text-forest group-hover:text-forestDark flex items-center gap-1 transition-colors">
+              <span>View</span>
+              <ArrowRight size={11} className="transform group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
+        </div>
+
+      </Link>
+    </motion.div>
   );
 }
