@@ -20,14 +20,14 @@ export default function BestSellers({ products: initialProducts }) {
 
   if (!items?.length) return null;
   return (
-    <section className="bg-canvas2 py-20">
+    <section className="bg-canvas2 py-10 sm:py-14">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-brass mb-2">Customer Favorites</p>
-            <h2 className="font-display text-3xl sm:text-4xl">Best Sellers</h2>
+            <p className="text-xs uppercase tracking-[0.2em] text-brass mb-1 font-semibold">Customer Favorites</p>
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold">Best Sellers</h2>
           </div>
-          <Link href="/shop?sort=best-selling" className="text-sm underline hover:text-forest hidden sm:inline">
+          <Link href="/shop?sort=best-selling" className="text-xs uppercase tracking-wider font-semibold underline hover:text-forest hidden sm:inline">
             View all
           </Link>
         </div>
@@ -36,7 +36,7 @@ export default function BestSellers({ products: initialProducts }) {
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}
-          className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
         >
           {items.slice(0, 4).map((p) => (
             <motion.div key={p.id} variants={fadeUp}>

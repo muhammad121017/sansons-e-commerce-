@@ -34,16 +34,15 @@ export default function ProductCard({ product }) {
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-40px" }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        variants={cardHover}
-        whileHover="hover"
-        className="group relative bg-paper rounded-md overflow-hidden"
+        viewport={{ once: true, margin: "-30px" }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={{ y: -6, scale: 1.02 }}
+        className="group relative bg-paper rounded-lg overflow-hidden border border-line/50 shadow-soft transition-all duration-300 hover:shadow-hover hover:border-forest/30"
       >
         <Link href={`/product/${product.slug}`} className="block">
-          <div className="relative aspect-[3/4] overflow-hidden bg-canvas2">
+          <div className="relative aspect-[1/1] overflow-hidden bg-canvas2">
             {!imgLoaded && !imgError && <div className="absolute inset-0 skeleton animate-shimmer" />}
             {!imgError ? (
               <>
