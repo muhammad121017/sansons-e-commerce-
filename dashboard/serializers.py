@@ -57,7 +57,12 @@ class SiteCMSSerializer(serializers.ModelSerializer):
 class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
-        fields = ['id', 'store_name', 'support_email', 'support_phone', 'store_address', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode', 'updated_at']
+        fields = [
+            'id', 'store_name', 'support_email', 'support_phone', 'store_address', 
+            'currency', 'free_shipping_threshold', 'flat_shipping_rate', 
+            'cod_enabled', 'maintenance_mode', 'shipper_name', 'shipper_address', 
+            'shipper_phone', 'shipper_email', 'return_policy_note', 'updated_at'
+        ]
 
 class AdminOrderItemSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='product.title', default='Product Item')

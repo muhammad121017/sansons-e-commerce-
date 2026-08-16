@@ -14,6 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
     visibility_status = serializers.SerializerMethodField()
     approval_status = serializers.CharField(source='status', read_only=True)
     requested_by_email = serializers.SerializerMethodField()
+    parent = serializers.PrimaryKeyRelatedField(queryset=Category.objects.filter(deleted_at__isnull=True), required=False, allow_null=True)
     parent_id = serializers.PrimaryKeyRelatedField(source='parent', read_only=True)
     subcategories = serializers.SerializerMethodField()
 
@@ -24,6 +25,13 @@ class CategorySerializer(serializers.ModelSerializer):
             'subcategories', 'count', 'status', 'approval_status', 'visibility_status',
             'requested_by', 'requested_by_email', 'rejection_reason'
         ]
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            if data.get('parent') == '' or data.get('parent') == 'null':
+                data['parent'] = None
+        return super().to_internal_value(data)
 
     def get_visibility_status(self, obj):
         return 'active' if obj.deleted_at is None else 'hidden'

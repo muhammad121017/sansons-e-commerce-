@@ -231,7 +231,14 @@ export default function AdminCategoriesPage() {
               variant="primary"
               size="sm"
             >
-              <Plus size={16} /> {user?.role === "seller" ? "Request Category from Admin" : "Add Main Category"}
+              <Plus size={16} /> {user?.role === "seller" ? "Request Main Category" : "Add Main Category"}
+            </Button>
+            <Button
+              onClick={() => setAddSubModalOpen(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Plus size={16} /> {user?.role === "seller" ? "Request Sub-Category" : "Add Sub-Category"}
             </Button>
           </div>
         </div>

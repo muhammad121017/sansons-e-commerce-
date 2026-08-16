@@ -176,17 +176,9 @@ export const getFooterContent = async () => {
     let fc = cmsRes.status === 'fulfilled' ? cmsRes.value.data?.footer_content : null;
     let st = settingsRes.status === 'fulfilled' ? settingsRes.value.data : null;
 
-    const email = (fc?.contact?.email && fc.contact.email !== 'hello@yourstore.com')
-      ? fc.contact.email
-      : (st?.support_email || fc?.contact?.email || mockFooterContent.contact.email);
-
-    const phone = (fc?.contact?.phone && fc.contact.phone !== '+1 (800) 555-0192')
-      ? fc.contact.phone
-      : (st?.support_phone || fc?.contact?.phone || mockFooterContent.contact.phone);
-
-    const address = (fc?.contact?.address && fc.contact.address !== '142 Atelier Street, New York, NY')
-      ? fc.contact.address
-      : (st?.store_address || fc?.contact?.address || mockFooterContent.contact.address);
+    const email = fc?.contact?.email || st?.support_email || mockFooterContent.contact.email;
+    const phone = fc?.contact?.phone || st?.support_phone || mockFooterContent.contact.phone;
+    const address = fc?.contact?.address || st?.store_address || mockFooterContent.contact.address;
 
     return {
       description: fc?.description || mockFooterContent.description,

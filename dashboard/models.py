@@ -30,6 +30,12 @@ class SiteSettings(models.Model):
     flat_shipping_rate = models.DecimalField(max_digits=10, decimal_places=2, default=12.00)
     cod_enabled = models.BooleanField(default=True)
     maintenance_mode = models.BooleanField(default=False)
+
+    shipper_name = models.CharField(max_length=255, default='Sansons Logistics & Fulfillment')
+    shipper_address = models.TextField(default='Sansons Warehouse, Industrial Hub Gate 4, Karachi')
+    shipper_phone = models.CharField(max_length=50, default='+92 300 1234567')
+    shipper_email = models.EmailField(default='dispatch@sansons.com')
+    return_policy_note = models.TextField(default='Please inspect package upon delivery. Returns accepted within 30 days.')
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

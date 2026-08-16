@@ -241,7 +241,10 @@ class AdminPlatformOverviewView(APIView):
 
         if user.role == 'seller' or (seller_id and seller_id != 'all'):
             target_seller_id = user.id if user.role == 'seller' else seller_id
-            seller_items = OrderItem.objects.filter(seller_id=target_seller_id).exclude(order__order_status__in=['cancelled', 'refunded'])
+            if '-' in str(target_seller_id):
+                seller_items = OrderItem.objects.filter(seller_id=target_seller_id).exclude(order__order_status__in=['cancelled', 'refunded'])
+            else:
+                seller_items = OrderItem.objects.filter(seller__email__iexact=target_seller_id).exclude(order__order_status__in=['cancelled', 'refunded'])
             valid_orders_ids = seller_items.values_list('order_id', flat=True).distinct()
             total_orders = len(valid_orders_ids)
             pending_orders = seller_items.filter(item_status__in=['pending', 'processing']).count()
@@ -579,10 +582,22 @@ class SiteSettingsView(APIView):
             settings_obj.cod_enabled = data['cod_enabled']
         if 'maintenance_mode' in data:
             settings_obj.maintenance_mode = data['maintenance_mode']
+
+        if 'shipper_name' in data:
+            settings_obj.shipper_name = data['shipper_name']
+        if 'shipper_address' in data:
+            settings_obj.shipper_address = data['shipper_address']
+        if 'shipper_phone' in data:
+            settings_obj.shipper_phone = data['shipper_phone']
+        if 'shipper_email' in data:
+            settings_obj.shipper_email = data['shipper_email']
+        if 'return_policy_note' in data:
+            settings_obj.return_policy_note = data['return_policy_note']
+
         settings_obj.save()
         audit_logger.info(f"Site Settings updated by user {request.user.email}")
         
-        changed_fields = [k for k in ['store_name', 'support_email', 'support_phone', 'store_address', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode'] if k in data]
+        changed_fields = [k for k in ['store_name', 'support_email', 'support_phone', 'store_address', 'currency', 'free_shipping_threshold', 'flat_shipping_rate', 'cod_enabled', 'maintenance_mode', 'shipper_name', 'shipper_address', 'shipper_phone', 'shipper_email', 'return_policy_note'] if k in data]
         log_audit_action(
             request.user,
             "Settings Updated",
@@ -602,9 +617,12 @@ class AdminOrderListView(generics.ListAPIView):
         if user.role == 'seller':
             queryset = queryset.filter(items__seller=user).distinct()
         else:
-            seller_id = self.request.query_params.get('seller_id')
+            seller_id = self.request.query_params.get('seller_id') or self.request.query_params.get('seller')
             if seller_id and seller_id != 'all':
-                queryset = queryset.filter(items__seller_id=seller_id).distinct()
+                if '-' in str(seller_id):
+                    queryset = queryset.filter(items__seller_id=seller_id).distinct()
+                else:
+                    queryset = queryset.filter(items__seller__email__iexact=seller_id).distinct()
         return queryset
 
 class AdminOrderDetailView(APIView):

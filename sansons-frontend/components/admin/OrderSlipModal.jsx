@@ -2,8 +2,35 @@
 
 import React from "react";
 import { Printer, X, CheckCircle, Package, MapPin, Phone, User, Calendar, CreditCard } from "lucide-react";
+import api from "@/lib/api";
 
 export default function OrderSlipModal({ order, isOpen, onClose }) {
+  const [shipper, setShipper] = React.useState({
+    name: "Sansons Logistics & Fulfillment",
+    address: "Sansons Warehouse, Industrial Hub Gate 4, Karachi",
+    phone: "+92 300 1234567",
+    email: "dispatch@sansons.com",
+    returnNote: "Please inspect package upon delivery. Returns accepted within 30 days."
+  });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      api.get("dashboard/settings/")
+        .then((res) => {
+          if (res.data) {
+            setShipper({
+              name: res.data.shipper_name || res.data.store_name || "Sansons Logistics & Fulfillment",
+              address: res.data.shipper_address || res.data.store_address || "Sansons Warehouse, Industrial Hub Gate 4, Karachi",
+              phone: res.data.shipper_phone || res.data.support_phone || "+92 300 1234567",
+              email: res.data.shipper_email || res.data.support_email || "dispatch@sansons.com",
+              returnNote: res.data.return_policy_note || "Please inspect package upon delivery. Returns accepted within 30 days."
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isOpen]);
+
   if (!isOpen || !order) return null;
 
   const handlePrint = () => {
@@ -96,7 +123,9 @@ export default function OrderSlipModal({ order, isOpen, onClose }) {
             <div>
               <h1 className="text-3xl font-serif font-bold tracking-tight text-zinc-900">SANSONS</h1>
               <p className="text-xs tracking-widest text-zinc-500 uppercase font-medium mt-1">Official Packing Slip & Invoice</p>
-              <p className="text-xs text-zinc-600 mt-1">Web: www.sansons.online | Support: support@sansons.online</p>
+              <p className="text-xs text-zinc-600 mt-1 font-medium">{shipper.name}</p>
+              <p className="text-xs text-zinc-500">{shipper.address}</p>
+              <p className="text-xs text-zinc-500">Phone: {shipper.phone} | Email: {shipper.email}</p>
             </div>
             <div className="text-right">
               <span className="inline-block px-3 py-1 bg-zinc-100 border border-zinc-300 rounded text-xs font-mono font-bold text-zinc-800 uppercase tracking-wider">

@@ -316,7 +316,10 @@ class SellerProductListCreateView(generics.ListCreateAPIView):
 
         seller_id = self.request.query_params.get('seller_id') or self.request.query_params.get('seller')
         if seller_id and seller_id != 'all':
-            queryset = queryset.filter(seller_id=seller_id)
+            if '-' in str(seller_id):
+                queryset = queryset.filter(seller_id=seller_id)
+            else:
+                queryset = queryset.filter(seller__email__iexact=seller_id)
         elif user.role == 'seller':
             queryset = queryset.filter(seller=user)
 
@@ -560,7 +563,13 @@ class CategoryListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         name = serializer.validated_data.get('name')
-        slug = serializer.validated_data.get('slug') or slugify(name)
+        base_slug = serializer.validated_data.get('slug') or slugify(name)
+        slug = base_slug
+        counter = 1
+        while Category.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+
         user = self.request.user
         
         if user and user.is_authenticated and user.role == 'seller':
@@ -568,7 +577,7 @@ class CategoryListCreateView(generics.ListCreateAPIView):
             action_title = "Category Requested"
             log_msg = f"Requested new category '{category.name}' (Pending Admin Approval)"
         else:
-            category = serializer.save(slug=slug, status='approved', requested_by=user if user.is_authenticated else None)
+            category = serializer.save(slug=slug, status='approved', requested_by=user if (user and user.is_authenticated) else None)
             action_title = "Category Created"
             log_msg = f"Created new active category '{category.name}' (Slug: {category.slug})"
             

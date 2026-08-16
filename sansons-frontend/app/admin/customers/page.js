@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Trash2, UserPlus, ShieldAlert, Edit, Check, Shield, Lock, CheckSquare, Square, Search, Package } from "lucide-react";
 import { AdminTopbar } from "@/components/admin/AdminUI";
 import Badge from "@/components/ui/Badge";
@@ -31,7 +31,7 @@ const PREDEFINED_ROLES = [
   { value: "custom", label: "Custom Role..." },
 ];
 
-export default function AdminCustomersPage() {
+function AdminCustomersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -654,7 +654,7 @@ export default function AdminCustomersPage() {
               </div>
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {AVAILABLE_MODULES.map((m) => {
-                  const isChecked = editForm.allowed_modules.includes(m.id);
+                  const isChecked = Array.isArray(editForm?.allowed_modules) && editForm.allowed_modules.includes(m.id);
                   return (
                     <button
                       key={m.id}
@@ -687,5 +687,13 @@ export default function AdminCustomersPage() {
         </form>
       </Modal>
     </div>
+  );
+}
+
+export default function AdminCustomersPageWrapper() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-ink2">Loading Users & Access Control...</div>}>
+      <AdminCustomersPage />
+    </Suspense>
   );
 }
