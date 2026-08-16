@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, Search, Heart, ShoppingBag, User, LayoutGrid } from "lucide-react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import MegaMenu from "./MegaMenu";
 import MobileDrawer from "./MobileDrawer";
 import CategoryDrawer from "./CategoryDrawer";
@@ -63,14 +63,20 @@ export default function Navbar() {
 
         <nav className="hidden lg:flex items-center gap-8 ml-6">
           {navigation.map((item) => (
-            <div key={item.id} className="relative" onMouseEnter={() => item.megaMenu && setOpenMenuId(item.id)}>
+            <motion.div
+              key={item.id}
+              className="relative"
+              onMouseEnter={() => item.megaMenu && setOpenMenuId(item.id)}
+              whileHover={{ scale: 1.06, y: -2 }}
+              transition={{ type: "spring", stiffness: 350, damping: 10 }}
+            >
               <Link
                 href={item.href}
-                className="text-sm tracking-wide uppercase py-8 inline-block hover:text-forest transition-colors"
+                className="text-sm tracking-wide uppercase py-8 inline-block hover:text-forest transition-colors font-medium"
               >
                 {item.label}
               </Link>
-            </div>
+            </motion.div>
           ))}
         </nav>
 
