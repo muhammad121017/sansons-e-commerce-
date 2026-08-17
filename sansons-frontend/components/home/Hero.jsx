@@ -275,10 +275,10 @@ export default function Hero() {
           100% { transform: translate3d(-50%, 0, 0); }
         }
         .animate-marquee-fast {
-          animation: marqueeSmooth 24s linear infinite;
+          animation: marqueeSmooth 10s linear infinite;
         }
         .animate-marquee-slow {
-          animation: marqueeSmooth 35s linear infinite;
+          animation: marqueeSmooth 20s linear infinite;
         }
       `}</style>
 
