@@ -619,10 +619,12 @@ class AdminOrderListView(generics.ListAPIView):
         else:
             seller_id = self.request.query_params.get('seller_id') or self.request.query_params.get('seller')
             if seller_id and seller_id != 'all':
-                if '-' in str(seller_id):
-                    queryset = queryset.filter(items__seller_id=seller_id).distinct()
-                else:
-                    queryset = queryset.filter(items__seller__email__iexact=seller_id).distinct()
+                from django.db.models import Q
+                queryset = queryset.filter(
+                    Q(items__seller_id=seller_id) | 
+                    Q(items__seller__id=seller_id) | 
+                    Q(items__seller__email__iexact=seller_id)
+                ).distinct()
         return queryset
 
 class AdminOrderDetailView(APIView):

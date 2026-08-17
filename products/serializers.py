@@ -29,7 +29,9 @@ class CategorySerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         if isinstance(data, dict):
             data = data.copy()
-            if data.get('parent') == '' or data.get('parent') == 'null':
+            if data.get('parent') in ['', 'null', None] and data.get('parentId') not in ['', 'null', None]:
+                data['parent'] = data.get('parentId')
+            if data.get('parent') in ['', 'null']:
                 data['parent'] = None
         return super().to_internal_value(data)
 

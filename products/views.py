@@ -316,11 +316,13 @@ class SellerProductListCreateView(generics.ListCreateAPIView):
 
         seller_id = self.request.query_params.get('seller_id') or self.request.query_params.get('seller')
         if seller_id and seller_id != 'all':
-            if '-' in str(seller_id):
-                queryset = queryset.filter(seller_id=seller_id)
-            else:
-                queryset = queryset.filter(seller__email__iexact=seller_id)
-        elif user.role == 'seller':
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(seller_id=seller_id) | 
+                Q(seller__id=seller_id) | 
+                Q(seller__email__iexact=seller_id)
+            )
+        elif user and user.is_authenticated and user.role == 'seller':
             queryset = queryset.filter(seller=user)
 
         return queryset
@@ -554,7 +556,9 @@ class CategoryListCreateView(generics.ListCreateAPIView):
         status_param = self.request.query_params.get('status')
         if status_param:
             queryset = queryset.filter(status=status_param)
-        elif not (user and user.is_authenticated and user.role == 'admin'):
+        elif user and user.is_authenticated and user.role == 'seller':
+            queryset = queryset.filter(Q(status='approved') | Q(requested_by=user))
+        elif not (user and user.is_authenticated and user.role in ['admin', 'manager']):
             queryset = queryset.filter(status='approved')
             
         return queryset.annotate(
