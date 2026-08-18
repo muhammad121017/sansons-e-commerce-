@@ -585,14 +585,17 @@ class CategoryListCreateView(generics.ListCreateAPIView):
             action_title = "Category Created"
             log_msg = f"Created new active category '{category.name}' (Slug: {category.slug})"
             
-        from dashboard.models import log_audit_action
-        log_audit_action(
-            user,
-            action_title,
-            log_msg,
-            module="Categories",
-            request=self.request
-        )
+        try:
+            from dashboard.models import log_audit_action
+            log_audit_action(
+                user,
+                action_title,
+                log_msg,
+                module="Categories",
+                request=self.request
+            )
+        except Exception:
+            pass
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializer
