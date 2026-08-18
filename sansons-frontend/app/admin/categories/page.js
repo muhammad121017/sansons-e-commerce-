@@ -91,6 +91,26 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const parseApiError = (err, fallbackMsg) => {
+    if (!err?.response?.data) return fallbackMsg;
+    const data = err.response.data;
+    if (typeof data === "string") return data;
+    if (data.detail && typeof data.detail === "string") return data.detail;
+    if (typeof data === "object") {
+      const messages = [];
+      for (const key in data) {
+        const val = data[key];
+        if (Array.isArray(val)) {
+          messages.push(`${key}: ${val.join(", ")}`);
+        } else if (typeof val === "string") {
+          messages.push(`${key}: ${val}`);
+        }
+      }
+      if (messages.length > 0) return messages.join(" | ");
+    }
+    return fallbackMsg;
+  };
+
   // Submit New Main Category
   const handleAddMainCategory = async (e) => {
     e.preventDefault();
@@ -108,7 +128,7 @@ export default function AdminCategoriesPage() {
       setAddMainModalOpen(false);
       loadCategories();
     } catch (err) {
-      showToast(err?.response?.data?.detail || "Failed to create category", "danger");
+      showToast(parseApiError(err, "Failed to create category"), "danger");
     } finally {
       setSubmitting(false);
     }
@@ -132,7 +152,7 @@ export default function AdminCategoriesPage() {
       setAddSubModalOpen(false);
       loadCategories();
     } catch (err) {
-      showToast(err?.response?.data?.detail || "Failed to add sub-category", "danger");
+      showToast(parseApiError(err, "Failed to add sub-category"), "danger");
     } finally {
       setSubmitting(false);
     }

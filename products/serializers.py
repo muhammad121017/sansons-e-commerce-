@@ -10,6 +10,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'image', 'description', 'count']
 
 class CategorySerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False, allow_blank=True, validators=[])
     count = serializers.IntegerField(read_only=True, default=0)
     visibility_status = serializers.SerializerMethodField()
     approval_status = serializers.CharField(source='status', read_only=True)
