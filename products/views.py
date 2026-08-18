@@ -546,7 +546,7 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return []
-        return [IsAdminOrSeller()]
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         from django.db.models import Count, Q
