@@ -120,7 +120,7 @@ function AdminProductsPage() {
           </Button>
         }
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 space-y-4">
         {/* Inventory Alert Cards Banner */}
         <div className="grid sm:grid-cols-2 gap-4 mb-6">
           <div className="bg-amber-50 border border-amber-200 rounded-md p-4 flex items-center justify-between">

@@ -62,7 +62,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <AdminTopbar title="Dashboard" />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 space-y-4">
         {user?.role === "admin" && (
           <div className="flex items-center justify-between mb-6 bg-paper p-4 border border-line rounded-md">
             <div>

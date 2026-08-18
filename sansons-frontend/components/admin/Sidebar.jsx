@@ -76,41 +76,41 @@ export default function AdminSidebar() {
     : user?.email || "Staff User";
 
   return (
-    <aside className="w-64 shrink-0 bg-ink text-canvas min-h-screen flex flex-col">
-      <div className="px-6 py-6 border-b border-canvas/10">
-        <p className="font-display text-xl">Sansons</p>
-        <p className="text-xs text-emerald-400 mt-1 font-medium truncate">
+    <aside className="w-52 shrink-0 bg-ink text-canvas min-h-screen flex flex-col">
+      <div className="px-5 py-4 border-b border-canvas/10">
+        <p className="font-display text-lg font-bold">Sansons</p>
+        <p className="text-[11px] text-emerald-400 mt-0.5 font-medium truncate">
           Logged in as <span className="font-bold">{displayName}</span>
         </p>
-        <p className="text-[10px] text-canvas/50 uppercase tracking-widest mt-0.5 font-mono">
+        <p className="text-[9px] text-canvas/50 uppercase tracking-widest font-mono">
           {user?.role ? `${user.role.toUpperCase()} PORTAL` : "ADMIN PORTAL"}
         </p>
       </div>
-      <nav className="flex-1 py-4 px-3 space-y-0.5">
+      <nav className="flex-1 py-3 px-2.5 space-y-0.5">
         {filteredNav.map((item) => {
           const active = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm transition-colors ${
+              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-sm text-xs transition-colors ${
                 active ? "bg-canvas text-ink font-medium" : "text-canvas/80 hover:bg-canvas/10"
               }`}
             >
-              <item.icon size={16} /> {item.label}
+              <item.icon size={15} /> {item.label}
             </Link>
           );
         })}
       </nav>
-      <div className="p-3 border-t border-canvas/10 space-y-1">
-        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm text-canvas/70 hover:bg-canvas/10 transition-colors">
-          <ExternalLink size={16} /> View Storefront
+      <div className="p-2.5 border-t border-canvas/10 space-y-0.5">
+        <Link href="/" className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-sm text-xs text-canvas/70 hover:bg-canvas/10 transition-colors">
+          <ExternalLink size={15} /> View Storefront
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm text-wine-light hover:bg-wine/20 transition-colors text-left font-medium"
+          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-sm text-xs text-wine-light hover:bg-wine/20 transition-colors text-left font-medium"
         >
-          <LogOut size={16} /> Logout
+          <LogOut size={15} /> Logout
         </button>
       </div>
     </aside>

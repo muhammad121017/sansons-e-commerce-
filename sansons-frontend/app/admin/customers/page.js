@@ -281,7 +281,7 @@ function AdminCustomersPage() {
         </Button>
       </div>
 
-      <div className="p-8 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4">
         {/* Role Quick Filter Pills & Search Bar */}
         <div className="bg-paper border border-line rounded-md p-5 space-y-4 shadow-soft">
           {/* Quick Role Badges */}

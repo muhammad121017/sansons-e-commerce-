@@ -257,7 +257,7 @@ function AdminCmsPageInner() {
           </Button>
         }
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 space-y-4">
         <div className="flex gap-2 mb-6 border-b border-line overflow-x-auto">
           {TABS.map((t) => (
             <button

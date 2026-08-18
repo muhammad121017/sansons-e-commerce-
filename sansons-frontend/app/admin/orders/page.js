@@ -69,7 +69,7 @@ export default function AdminOrdersPage() {
   return (
     <div>
       <AdminTopbar title="Orders" />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 space-y-4">
         <div className="flex gap-3 mb-5 flex-wrap">
           {user?.role === "admin" && (
             <select

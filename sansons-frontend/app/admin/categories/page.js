@@ -212,7 +212,7 @@ export default function AdminCategoriesPage() {
     <div>
       <AdminTopbar title="Categories &amp; Sub-Categories Manager" />
 
-      <div className="p-8 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-paper border border-line p-6 rounded-xl">
           <div>
