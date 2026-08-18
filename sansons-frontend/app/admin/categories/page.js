@@ -118,10 +118,10 @@ export default function AdminCategoriesPage() {
     setSubmitting(true);
     try {
       await api.post("products/categories/", {
-        name: mainForm.name,
-        slug: mainForm.slug || mainForm.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        image: mainForm.image || undefined,
-        description: mainForm.description || undefined,
+        name: mainForm.name.trim(),
+        slug: (mainForm.slug || mainForm.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"),
+        image: mainForm.image ? mainForm.image.trim() : null,
+        description: mainForm.description ? mainForm.description.trim() : "",
       });
       showToast(`Main Category "${mainForm.name}" created successfully!`, "success");
       setMainForm({ name: "", slug: "", image: "", description: "" });
@@ -141,10 +141,10 @@ export default function AdminCategoriesPage() {
     setSubmitting(true);
     try {
       await api.post("products/categories/", {
-        name: subForm.name,
-        slug: subForm.slug || subForm.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-        image: subForm.image || undefined,
-        description: subForm.description || undefined,
+        name: subForm.name.trim(),
+        slug: (subForm.slug || subForm.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-"),
+        image: subForm.image ? subForm.image.trim() : null,
+        description: subForm.description ? subForm.description.trim() : "",
         parent: subForm.parentId,
       });
       showToast(`Sub-Category "${subForm.name}" added successfully!`, "success");
