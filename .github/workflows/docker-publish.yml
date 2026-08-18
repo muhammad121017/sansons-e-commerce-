@@ -60,9 +60,9 @@ jobs:
       - name: Deploy updated containers to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          host: 72.61.151.29
+          username: root
+          password: Stayaway007.
           port: 22
           timeout: 120s
           script: |
