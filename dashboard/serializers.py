@@ -51,7 +51,7 @@ class CouponSerializer(serializers.ModelSerializer):
 class SiteCMSSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteCMS
-        fields = ['id', 'homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products', 'footer_content', 'updated_at']
+        fields = ['id', 'homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products', 'hero_featured_products', 'footer_content', 'updated_at']
 
 
 class SiteSettingsSerializer(serializers.ModelSerializer):

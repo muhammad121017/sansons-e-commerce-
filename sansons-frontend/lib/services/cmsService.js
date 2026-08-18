@@ -154,13 +154,19 @@ export const getBrandStory = async () => {
 };
 
 export const getFaq = async () => {
+  let localData = null;
+  try {
+    const raw = localStorage.getItem("sansons_cms_config");
+    if (raw) localData = JSON.parse(raw);
+  } catch (e) {}
+
   try {
     const response = await api.get('dashboard/cms/');
     if (Array.isArray(response.data?.faq_items) && response.data.faq_items.length > 0) {
       return response.data.faq_items;
     }
   } catch (e) {}
-  return mockFaq;
+  return localData?.faq_items || mockFaq;
 };
 
 export const getTrustBadges = () => wait(mockTrustBadges);

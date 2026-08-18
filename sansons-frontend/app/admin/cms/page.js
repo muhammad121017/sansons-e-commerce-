@@ -213,21 +213,30 @@ function AdminCmsPageInner() {
   };
 
   const toggleCategorySelection = (slug) => {
+    const strSlug = String(slug);
     setSelectedCategories((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
+      prev.some((s) => String(s) === strSlug)
+        ? prev.filter((s) => String(s) !== strSlug)
+        : [...prev, slug]
     );
   };
 
   const toggleProductSelection = (id) => {
+    const strId = String(id);
     setSelectedProducts((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+      prev.some((p) => String(p) === strId)
+        ? prev.filter((p) => String(p) !== strId)
+        : [...prev, id]
     );
   };
 
   const toggleHeroFeaturedProduct = (id, title = "") => {
+    const strId = String(id);
     setHeroFeaturedProducts((prev) => {
-      const isCurrentlyFeatured = prev.includes(id);
-      const updated = isCurrentlyFeatured ? prev.filter((p) => p !== id) : [...prev, id];
+      const isCurrentlyFeatured = prev.some((p) => String(p) === strId);
+      const updated = isCurrentlyFeatured
+        ? prev.filter((p) => String(p) !== strId)
+        : [...prev, id];
       showToast(
         isCurrentlyFeatured
           ? `Product "${title || id}" removed from Hero Section`
@@ -322,7 +331,7 @@ function AdminCmsPageInner() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   {dbCategories.map((cat) => {
-                    const isSelected = selectedCategories.includes(cat.slug);
+                    const isSelected = selectedCategories.some((s) => String(s) === String(cat.slug) || String(s) === String(cat.id));
                     return (
                       <button
                         key={cat.id}
@@ -356,7 +365,7 @@ function AdminCmsPageInner() {
                 </div>
                 <div className="space-y-2 max-h-96 overflow-y-auto pt-2 pr-2">
                   {dbProducts.map((prod) => {
-                    const isSelected = selectedProducts.includes(prod.id);
+                    const isSelected = selectedProducts.some((p) => String(p) === String(prod.id));
                     return (
                       <button
                         key={prod.id}
@@ -412,7 +421,7 @@ function AdminCmsPageInner() {
                     {dbProducts
                       .filter((p) => (p.title || p.name || "").toLowerCase().includes(heroSearchQuery.toLowerCase()))
                       .map((prod) => {
-                        const isFeatured = heroFeaturedProducts.includes(prod.id);
+                        const isFeatured = heroFeaturedProducts.some((p) => String(p) === String(prod.id));
                         return (
                           <div
                             key={prod.id}

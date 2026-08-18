@@ -200,6 +200,65 @@ function AdminCustomersPage() {
     }
   };
 
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+
+  const toggleSelectAll = () => {
+    if (selectedUserIds.length === filteredUsers.length) {
+      setSelectedUserIds([]);
+    } else {
+      setSelectedUserIds(filteredUsers.map((u) => u.id));
+    }
+  };
+
+  const toggleSelectUser = (id) => {
+    setSelectedUserIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkStatusChange = async (newStatus) => {
+    if (selectedUserIds.length === 0) return;
+    if (!confirm(`Are you sure you want to set status to "${newStatus}" for ${selectedUserIds.length} selected user(s)?`)) return;
+
+    let updatedCount = 0;
+    for (const id of selectedUserIds) {
+      try {
+        await updateAdminUser(id, { status: newStatus });
+        updatedCount++;
+      } catch (e) {}
+    }
+    showToast(`Updated ${updatedCount} user(s) to ${newStatus}.`, "success");
+    setSelectedUserIds([]);
+    loadUsers();
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedUserIds.length === 0) return;
+    if (!confirm(`CAUTION: Are you sure you want to PERMANENTLY DELETE ${selectedUserIds.length} selected user account(s)?`)) return;
+
+    let deletedCount = 0;
+    for (const id of selectedUserIds) {
+      try {
+        await deleteAdminUser(id);
+        deletedCount++;
+      } catch (e) {}
+    }
+    showToast(`Permanently deleted ${deletedCount} user account(s).`, "success");
+    setSelectedUserIds([]);
+    loadUsers();
+  };
+
+  const handleToggleSuspendUser = async (u) => {
+    const nextStatus = u.status === "suspended" ? "active" : "suspended";
+    try {
+      await updateAdminUser(u.id, { status: nextStatus });
+      showToast(`User ${u.email} status changed to ${nextStatus}`, "success");
+      loadUsers();
+    } catch (e) {
+      showToast("Failed to update user status", "danger");
+    }
+  };
+
   const handleDeleteUser = async (id, email) => {
     if (!confirm(`Are you sure you want to delete user ${email}?`)) return;
     try {
@@ -334,6 +393,35 @@ function AdminCustomersPage() {
           </div>
         </div>
 
+        {/* Bulk Actions Toolbar */}
+        {selectedUserIds.length > 0 && (
+          <div className="flex items-center justify-between bg-forest/10 border border-forest/30 rounded-md p-3.5 text-xs">
+            <span className="font-semibold text-forest">
+              {selectedUserIds.length} user account(s) selected
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleBulkStatusChange("suspended")}
+                className="px-3 py-1.5 bg-amber-600 text-white rounded font-medium hover:bg-amber-500 shadow-sm"
+              >
+                Suspend Selected ({selectedUserIds.length})
+              </button>
+              <button
+                onClick={() => handleBulkStatusChange("active")}
+                className="px-3 py-1.5 bg-emerald-600 text-white rounded font-medium hover:bg-emerald-500 shadow-sm"
+              >
+                Activate Selected ({selectedUserIds.length})
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="px-3 py-1.5 bg-red-600 text-white rounded font-medium hover:bg-red-500 shadow-sm"
+              >
+                Delete Selected ({selectedUserIds.length})
+              </button>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center py-12 text-ink2 text-sm">Loading user accounts & permissions from database...</div>
         ) : (
@@ -341,6 +429,14 @@ function AdminCustomersPage() {
             <table className="w-full text-sm min-w-[950px]">
               <thead>
                 <tr className="text-left text-ink2 text-xs uppercase bg-canvas2">
+                  <th className="px-4 py-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={filteredUsers.length > 0 && selectedUserIds.length === filteredUsers.length}
+                      onChange={toggleSelectAll}
+                      className="rounded border-line cursor-pointer"
+                    />
+                  </th>
                   <th className="px-6 py-3">User</th>
                   <th className="px-6 py-3">Role</th>
                   <th className="px-6 py-3">Allowed Module Access</th>
@@ -352,15 +448,24 @@ function AdminCustomersPage() {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-ink2">
+                    <td colSpan={7} className="px-6 py-12 text-center text-ink2">
                       No users match your search/filter criteria.
                     </td>
                   </tr>
                 ) : (
                   filteredUsers.map((u) => {
                     const mods = Array.isArray(u.allowed_modules) ? u.allowed_modules : [];
+                    const isSelected = selectedUserIds.includes(u.id);
                     return (
-                      <tr key={u.id} className="border-t border-line hover:bg-canvas/10 transition-colors">
+                      <tr key={u.id} className={`border-t border-line transition-colors ${isSelected ? "bg-forest/5" : "hover:bg-canvas/10"}`}>
+                        <td className="px-4 py-3.5 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectUser(u.id)}
+                            className="rounded border-line cursor-pointer"
+                          />
+                        </td>
                         <td className="px-6 py-3.5">
                           <p className="font-medium text-ink">{`${u.first_name} ${u.last_name}`.trim() || "User"}</p>
                           <p className="text-xs text-ink2">{u.email}</p>
@@ -411,10 +516,21 @@ function AdminCustomersPage() {
                               <Edit size={13} /> Edit Access
                             </button>
                             <button
+                              onClick={() => handleToggleSuspendUser(u)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded border transition-colors ${
+                                u.status === "suspended"
+                                  ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                                  : "bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100"
+                              }`}
+                              title={u.status === "suspended" ? "Re-activate Account" : "Suspend Account"}
+                            >
+                              <ShieldAlert size={13} /> {u.status === "suspended" ? "Activate" : "Suspend"}
+                            </button>
+                            <button
                               onClick={() => handleDeleteUser(u.id, u.email)}
                               aria-label="Delete user"
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-300 text-red-600 text-xs font-semibold rounded hover:bg-red-50 transition-colors"
-                              title="Delete User"
+                              title="Delete User Account"
                             >
                               <Trash2 size={13} /> Delete
                             </button>

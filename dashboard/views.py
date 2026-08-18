@@ -532,11 +532,13 @@ class SiteCMSView(APIView):
             cms.featured_categories = data['featured_categories']
         if 'featured_products' in data:
             cms.featured_products = data['featured_products']
+        if 'hero_featured_products' in data:
+            cms.hero_featured_products = data['hero_featured_products']
         if 'footer_content' in data:
             cms.footer_content = data['footer_content']
         cms.save()
         audit_logger.info(f"Site CMS updated by user {request.user.email}")
-        changed_sections = [k for k in ['homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products', 'footer_content'] if k in data]
+        changed_sections = [k for k in ['homepage_sections', 'hero_slides', 'announcement_bar', 'brand_story', 'faq_items', 'featured_categories', 'featured_products', 'hero_featured_products', 'footer_content'] if k in data]
         log_audit_action(
             request.user,
             "CMS Content Updated",

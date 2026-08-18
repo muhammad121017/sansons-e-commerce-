@@ -13,23 +13,55 @@ export default function OrderSlipModal({ order, isOpen, onClose }) {
     returnNote: "Please inspect package upon delivery. Returns accepted within 30 days."
   });
 
+  const [isEditingShipper, setIsEditingShipper] = React.useState(false);
+  const [shipperForm, setShipperForm] = React.useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    returnNote: ""
+  });
+  const [savingShipper, setSavingShipper] = React.useState(false);
+
   React.useEffect(() => {
     if (isOpen) {
       api.get("dashboard/settings/")
         .then((res) => {
           if (res.data) {
-            setShipper({
+            const data = {
               name: res.data.shipper_name || res.data.store_name || "Sansons Logistics & Fulfillment",
               address: res.data.shipper_address || res.data.store_address || "Sansons Warehouse, Industrial Hub Gate 4, Karachi",
               phone: res.data.shipper_phone || res.data.support_phone || "+92 300 1234567",
               email: res.data.shipper_email || res.data.support_email || "dispatch@sansons.com",
               returnNote: res.data.return_policy_note || "Please inspect package upon delivery. Returns accepted within 30 days."
-            });
+            };
+            setShipper(data);
+            setShipperForm(data);
           }
         })
         .catch(() => {});
     }
   }, [isOpen]);
+
+  const handleSaveShipper = async (e) => {
+    e.preventDefault();
+    setSavingShipper(true);
+    try {
+      await api.post("dashboard/settings/", {
+        shipper_name: shipperForm.name,
+        shipper_address: shipperForm.address,
+        shipper_phone: shipperForm.phone,
+        shipper_email: shipperForm.email,
+        return_policy_note: shipperForm.returnNote,
+      });
+      setShipper(shipperForm);
+      setIsEditingShipper(false);
+    } catch (err) {
+      alert("Failed to update shipper details.");
+    } finally {
+      setSavingShipper(false);
+    }
+  };
 
   if (!isOpen || !order) return null;
 
@@ -101,6 +133,12 @@ export default function OrderSlipModal({ order, isOpen, onClose }) {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setIsEditingShipper(!isEditingShipper)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium rounded border border-zinc-700 transition-colors"
+            >
+              {isEditingShipper ? "Close Edit" : "Edit Shipper Details"}
+            </button>
+            <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-md transition-colors shadow-sm"
             >
@@ -115,6 +153,80 @@ export default function OrderSlipModal({ order, isOpen, onClose }) {
             </button>
           </div>
         </div>
+
+        {/* Inline Shipper Details Edit Panel (Hidden during print) */}
+        {isEditingShipper && (
+          <form onSubmit={handleSaveShipper} className="no-print bg-zinc-50 border-b border-zinc-200 p-4 space-y-3 text-xs">
+            <p className="font-semibold text-zinc-800 flex items-center gap-1">
+              ✏️ Edit Printable Shipper & Fulfillment Details
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-zinc-500 font-medium mb-1">Shipper / Company Name</label>
+                <input
+                  type="text"
+                  value={shipperForm.name}
+                  onChange={(e) => setShipperForm({ ...shipperForm, name: e.target.value })}
+                  className="w-full border border-zinc-300 rounded px-2.5 py-1.5 text-xs bg-white text-zinc-900 outline-none focus:border-emerald-600"
+                />
+              </div>
+              <div>
+                <label className="block text-zinc-500 font-medium mb-1">Dispatch Email</label>
+                <input
+                  type="email"
+                  value={shipperForm.email}
+                  onChange={(e) => setShipperForm({ ...shipperForm, email: e.target.value })}
+                  className="w-full border border-zinc-300 rounded px-2.5 py-1.5 text-xs bg-white text-zinc-900 outline-none focus:border-emerald-600"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-zinc-500 font-medium mb-1">Dispatch Phone</label>
+                <input
+                  type="text"
+                  value={shipperForm.phone}
+                  onChange={(e) => setShipperForm({ ...shipperForm, phone: e.target.value })}
+                  className="w-full border border-zinc-300 rounded px-2.5 py-1.5 text-xs bg-white text-zinc-900 outline-none focus:border-emerald-600"
+                />
+              </div>
+              <div>
+                <label className="block text-zinc-500 font-medium mb-1">Return Policy Note</label>
+                <input
+                  type="text"
+                  value={shipperForm.returnNote}
+                  onChange={(e) => setShipperForm({ ...shipperForm, returnNote: e.target.value })}
+                  className="w-full border border-zinc-300 rounded px-2.5 py-1.5 text-xs bg-white text-zinc-900 outline-none focus:border-emerald-600"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-zinc-500 font-medium mb-1">Warehouse Address</label>
+              <input
+                type="text"
+                value={shipperForm.address}
+                onChange={(e) => setShipperForm({ ...shipperForm, address: e.target.value })}
+                className="w-full border border-zinc-300 rounded px-2.5 py-1.5 text-xs bg-white text-zinc-900 outline-none focus:border-emerald-600"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsEditingShipper(false)}
+                className="px-3 py-1 bg-zinc-200 hover:bg-zinc-300 text-zinc-800 rounded font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={savingShipper}
+                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-medium"
+              >
+                {savingShipper ? "Saving..." : "Save Details"}
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Printable Content Area */}
         <div id="printable-order-slip" className="p-8 overflow-y-auto bg-white text-zinc-900">

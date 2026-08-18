@@ -12,6 +12,7 @@ class SiteCMS(models.Model):
     faq_items = models.JSONField(default=list, blank=True)
     featured_categories = models.JSONField(default=list, blank=True)
     featured_products = models.JSONField(default=list, blank=True)
+    hero_featured_products = models.JSONField(default=list, blank=True)
     footer_content = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
