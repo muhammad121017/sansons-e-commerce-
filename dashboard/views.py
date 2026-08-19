@@ -406,7 +406,7 @@ class AdminUserManagementView(generics.ListCreateAPIView):
     serializer_class = UserManagementSerializer
 
     def get_queryset(self):
-        return User.objects.all().order_by('-created_at')
+        return User.objects.filter(deleted_at__isnull=True).order_by('-created_at')
 
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
@@ -420,7 +420,7 @@ class AdminUserManagementView(generics.ListCreateAPIView):
         if not email or not password:
             return Response({"error": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=email, deleted_at__isnull=True).exists():
             return Response({"error": "A user with this email already exists."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(
@@ -444,8 +444,10 @@ class AdminUserManagementView(generics.ListCreateAPIView):
 
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminOrSeller]
-    queryset = User.objects.all()
     serializer_class = UserManagementSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(deleted_at__isnull=True)
 
     def perform_destroy(self, instance):
         if instance == self.request.user:
@@ -459,7 +461,9 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
             module="Users",
             request=self.request
         )
-        instance.delete()
+        from django.utils import timezone
+        instance.deleted_at = timezone.now()
+        instance.save()
 
     def perform_update(self, serializer):
         instance = serializer.save()
