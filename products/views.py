@@ -547,7 +547,7 @@ class CategoryListCreateView(generics.ListCreateAPIView):
         # Allow category creation for authenticated users
         if self.request.method == 'GET':
             return []
-        return [permissions.IsAuthenticated()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         from django.db.models import Count, Q
