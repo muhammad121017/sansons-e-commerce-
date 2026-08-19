@@ -544,6 +544,7 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
 
     def get_permissions(self):
+        # Allow category creation for authenticated users
         if self.request.method == 'GET':
             return []
         return [permissions.IsAuthenticated()]
