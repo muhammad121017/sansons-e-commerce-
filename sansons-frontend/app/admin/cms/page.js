@@ -24,9 +24,9 @@ const DEFAULT_HOMEPAGE_SECTIONS = [
 const DEFAULT_FOOTER = {
   description: "Considered goods, made by hand. Built for a decade of use, not a season of trend.",
   contact: {
-    email: "hello@yourstore.com",
-    phone: "+1 (800) 555-0192",
-    address: "142 Atelier Street, New York, NY",
+    email: "concierge@sansons.com",
+    phone: "+92 300 1234567",
+    address: "Sansons Main Atelier, Lahore, Pakistan",
   },
   social: [
     { platform: "Instagram", href: "https://instagram.com" },
@@ -99,6 +99,12 @@ function AdminCmsPageInner() {
 
   const loadCmsAndOptions = async () => {
     setLoading(true);
+    let localData = null;
+    try {
+      const stored = localStorage.getItem(CMS_STORAGE_KEY);
+      if (stored) localData = JSON.parse(stored);
+    } catch (e) {}
+
     try {
       const [cmsRes, catRes, prodRes] = await Promise.allSettled([
         api.get("dashboard/cms/"),
@@ -125,16 +131,36 @@ function AdminCmsPageInner() {
           const missing = DEFAULT_HOMEPAGE_SECTIONS.filter((s) => !loadedIds.has(s.id));
           setSections([...data.homepage_sections, ...missing]);
         } else {
-          setSections(DEFAULT_HOMEPAGE_SECTIONS);
+          setSections(localData?.homepage_sections || DEFAULT_HOMEPAGE_SECTIONS);
         }
 
         if (Array.isArray(data.hero_slides) && data.hero_slides.length > 0) setHero(data.hero_slides);
+        else if (localData?.hero_slides) setHero(localData.hero_slides);
+
         if (data.announcement_bar && Object.keys(data.announcement_bar).length > 0) setAnnouncement(data.announcement_bar);
+        else if (localData?.announcement_bar) setAnnouncement(localData.announcement_bar);
+
         if (data.brand_story && Object.keys(data.brand_story).length > 0) setStory(data.brand_story);
+        else if (localData?.brand_story) setStory(localData.brand_story);
+
         if (Array.isArray(data.faq_items) && data.faq_items.length > 0) setFaqItems(data.faq_items);
-        if (Array.isArray(data.featured_categories)) setSelectedCategories(data.featured_categories);
-        if (Array.isArray(data.featured_products)) setSelectedProducts(data.featured_products);
-        if (Array.isArray(data.hero_featured_products)) setHeroFeaturedProducts(data.hero_featured_products);
+        else if (localData?.faq_items) setFaqItems(localData.faq_items);
+
+        const featCats = (Array.isArray(data.featured_categories) && data.featured_categories.length > 0)
+          ? data.featured_categories
+          : (localData?.featured_categories || []);
+        setSelectedCategories(featCats);
+
+        const featProds = (Array.isArray(data.featured_products) && data.featured_products.length > 0)
+          ? data.featured_products
+          : (localData?.featured_products || []);
+        setSelectedProducts(featProds);
+
+        const heroProds = (Array.isArray(data.hero_featured_products) && data.hero_featured_products.length > 0)
+          ? data.hero_featured_products
+          : (localData?.hero_featured_products || []);
+        setHeroFeaturedProducts(heroProds);
+
         if (data.footer_content && typeof data.footer_content === "object" && Object.keys(data.footer_content).length > 0) {
           setFooterContent({
             description: data.footer_content.description || DEFAULT_FOOTER.description,
@@ -146,7 +172,19 @@ function AdminCmsPageInner() {
             social: Array.isArray(data.footer_content.social) && data.footer_content.social.length > 0 ? data.footer_content.social : DEFAULT_FOOTER.social,
             columns: Array.isArray(data.footer_content.columns) && data.footer_content.columns.length > 0 ? data.footer_content.columns : DEFAULT_FOOTER.columns,
           });
+        } else if (localData?.footer_content) {
+          setFooterContent(localData.footer_content);
         }
+      } else if (localData) {
+        if (Array.isArray(localData.homepage_sections)) setSections(localData.homepage_sections);
+        if (Array.isArray(localData.hero_slides)) setHero(localData.hero_slides);
+        if (localData.announcement_bar) setAnnouncement(localData.announcement_bar);
+        if (localData.brand_story) setStory(localData.brand_story);
+        if (Array.isArray(localData.faq_items)) setFaqItems(localData.faq_items);
+        if (Array.isArray(localData.featured_categories)) setSelectedCategories(localData.featured_categories);
+        if (Array.isArray(localData.featured_products)) setSelectedProducts(localData.featured_products);
+        if (Array.isArray(localData.hero_featured_products)) setHeroFeaturedProducts(localData.hero_featured_products);
+        if (localData.footer_content) setFooterContent(localData.footer_content);
       }
     } catch (err) {
       console.warn("Failed to load CMS options", err);

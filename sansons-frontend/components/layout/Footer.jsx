@@ -21,9 +21,9 @@ const SOCIAL_ICON = {
 const DEFAULT_FOOTER = {
   description: "Considered goods, made by hand. Built for a decade of use, not a season of trend.",
   contact: {
-    email: "hello@yourstore.com",
-    phone: "+1 (800) 555-0192",
-    address: "142 Atelier Street, New York, NY",
+    email: "concierge@sansons.com",
+    phone: "+92 300 1234567",
+    address: "Sansons Main Atelier, Lahore, Pakistan",
   },
   social: [
     { platform: "Instagram", href: "https://instagram.com" },

@@ -173,18 +173,28 @@ export const getTrustBadges = () => wait(mockTrustBadges);
 export const getWhyChooseUs = () => wait(mockWhyChooseUs);
 export const getNewsletterContent = () => wait(mockNewsletter);
 export const getFooterContent = async () => {
+  let cached = null;
+  if (typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("sansons_cms_config");
+      if (stored) cached = JSON.parse(stored)?.footer_content;
+    } catch (e) {}
+  }
+
   try {
     const [cmsRes, settingsRes] = await Promise.allSettled([
-      api.get('dashboard/cms/'),
-      api.get('dashboard/settings/'),
+      api.get("dashboard/cms/"),
+      api.get("dashboard/settings/"),
     ]);
 
-    let fc = cmsRes.status === 'fulfilled' ? cmsRes.value.data?.footer_content : null;
-    let st = settingsRes.status === 'fulfilled' ? settingsRes.value.data : null;
+    let fc = cmsRes.status === "fulfilled" ? cmsRes.value.data?.footer_content : null;
+    let st = settingsRes.status === "fulfilled" ? settingsRes.value.data : null;
 
-    const email = fc?.contact?.email || st?.support_email || mockFooterContent.contact.email;
-    const phone = fc?.contact?.phone || st?.support_phone || mockFooterContent.contact.phone;
-    const address = fc?.contact?.address || st?.store_address || mockFooterContent.contact.address;
+    if (!fc && cached) fc = cached;
+
+    const email = fc?.contact?.email || st?.support_email || "concierge@sansons.com";
+    const phone = fc?.contact?.phone || st?.support_phone || "+92 300 1234567";
+    const address = fc?.contact?.address || st?.store_address || "Sansons Main Atelier, Lahore, Pakistan";
 
     return {
       description: fc?.description || mockFooterContent.description,
@@ -192,8 +202,28 @@ export const getFooterContent = async () => {
       social: Array.isArray(fc?.social) && fc.social.length > 0 ? fc.social : mockFooterContent.social,
       columns: Array.isArray(fc?.columns) && fc.columns.length > 0 ? fc.columns : mockFooterContent.columns,
     };
-  } catch (e) {}
-  return mockFooterContent;
+  } catch (e) {
+    if (cached) {
+      return {
+        description: cached.description || mockFooterContent.description,
+        contact: {
+          email: cached.contact?.email || "concierge@sansons.com",
+          phone: cached.contact?.phone || "+92 300 1234567",
+          address: cached.contact?.address || "Sansons Main Atelier, Lahore, Pakistan",
+        },
+        social: Array.isArray(cached.social) && cached.social.length > 0 ? cached.social : mockFooterContent.social,
+        columns: Array.isArray(cached.columns) && cached.columns.length > 0 ? cached.columns : mockFooterContent.columns,
+      };
+    }
+  }
+  return {
+    ...mockFooterContent,
+    contact: {
+      email: "concierge@sansons.com",
+      phone: "+92 300 1234567",
+      address: "Sansons Main Atelier, Lahore, Pakistan",
+    },
+  };
 };
 export const getNavigationMenu = async () => {
   try {
