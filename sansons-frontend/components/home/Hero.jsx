@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, ShieldCheck, Truck, RotateCcw, Award, Star } from "lucide-react";
-import Button from "@/components/ui/Button";
+import { Star, ArrowRight, Eye } from "lucide-react";
 import { fetchBestSellers } from "@/lib/services/productService";
 import { formatCurrency } from "@/lib/utils";
 
@@ -79,13 +77,6 @@ const DEFAULT_HERO_PRODUCTS = [
   }
 ];
 
-const MARQUEE_ITEMS = [
-  { icon: Truck, text: "Express Shipping Nationwide" },
-  { icon: ShieldCheck, text: "100% Verified Boutique Sellers" },
-  { icon: RotateCcw, text: "7-Day Hassle-Free Returns" },
-  { icon: Award, text: "Guaranteed Authenticity On All Items" },
-];
-
 export default function Hero() {
   const [products, setProducts] = useState(DEFAULT_HERO_PRODUCTS);
 
@@ -123,222 +114,159 @@ export default function Hero() {
       .catch(() => {});
   }, []);
 
-  // Duplicate for seamless 100% loop
-  const loopProducts = [...products, ...products];
+  // Spotlight = first product, Grid = next 6
+  const spotlight = products[0];
+  const gridProducts = products.slice(1, 7);
+
+  // Fill grid to exactly 6 if needed
+  while (gridProducts.length < 6) {
+    gridProducts.push(DEFAULT_HERO_PRODUCTS[gridProducts.length % DEFAULT_HERO_PRODUCTS.length]);
+  }
 
   return (
-    <section className="relative bg-gradient-to-b from-[#F4F0EA] via-[#EDE7DE] to-[#F4F0EA] text-ink border-b border-line/60 overflow-hidden py-8 lg:py-12">
+    <section className="relative bg-gradient-to-b from-[#F4F0EA] via-[#EDE7DE] to-[#F4F0EA] text-ink border-b border-line/60 overflow-hidden py-6 lg:py-10">
       {/* Background Ambient Orbs */}
       <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-forest/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-[350px] h-[350px] bg-brass/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Hero Grid */}
-      <div className="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-        
-        {/* LEFT COLUMN: Editorial Copy & CTAs */}
-        <div className="lg:col-span-5 space-y-5 text-left">
-          
-          {/* Luxury Badge */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+
+        {/* Main Layout: Spotlight + Grid */}
+        <div className="grid lg:grid-cols-12 gap-5 lg:gap-6">
+
+          {/* LEFT: Spotlight Card */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-paper/90 border border-line text-forest text-[11px] font-semibold uppercase tracking-widest backdrop-blur-md shadow-sm"
+            className="lg:col-span-5"
           >
-            <Sparkles size={13} className="text-brass animate-pulse" />
-            <span>Curated Multi-Vendor Marketplace</span>
+            <Link href={spotlight.link} className="group block">
+              <div className="relative bg-paper rounded-2xl border border-line/80 overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                {/* Product Image */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-canvas2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={spotlight.image}
+                    alt={spotlight.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+
+                  {/* Category Badge */}
+                  <div className="absolute top-4 left-4 bg-paper/95 backdrop-blur-sm border border-line px-3 py-1 rounded-full text-[10px] uppercase font-bold text-forest tracking-wider shadow-sm">
+                    {spotlight.category}
+                  </div>
+
+                  {/* Rating Badge */}
+                  <div className="absolute top-4 right-4 bg-paper/95 backdrop-blur-sm border border-line px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                    <Star size={11} className="fill-brass text-brass" />
+                    <span className="text-[11px] font-bold text-ink">{spotlight.rating}</span>
+                  </div>
+
+                  {/* Hover Quick-View Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+                    <span className="inline-flex items-center gap-2 bg-paper text-forest font-semibold text-xs px-5 py-2.5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <Eye size={14} />
+                      View Product
+                    </span>
+                  </div>
+                </div>
+
+                {/* Product Info */}
+                <div className="p-5 space-y-2.5">
+                  <h2 className="font-display text-lg sm:text-xl font-semibold text-ink leading-tight group-hover:text-forest transition-colors line-clamp-2">
+                    {spotlight.title}
+                  </h2>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="font-mono text-xl font-bold text-forest">
+                      {formatCurrency(spotlight.price)}
+                    </span>
+                    {spotlight.compareAtPrice && (
+                      <span className="font-mono text-sm text-ink2/60 line-through">
+                        {formatCurrency(spotlight.compareAtPrice)}
+                      </span>
+                    )}
+                    {spotlight.compareAtPrice && (
+                      <span className="text-[10px] font-bold text-white bg-wine px-2 py-0.5 rounded-full">
+                        {Math.round((1 - spotlight.price / spotlight.compareAtPrice) * 100)}% OFF
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Link>
           </motion.div>
 
-          {/* Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="space-y-2.5"
-          >
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-[44px] font-semibold tracking-tight text-ink leading-[1.1]">
-              Elevated Luxury. <br />
-              <span className="bg-gradient-to-r from-forest via-[#164434] to-brass bg-clip-text text-transparent">
-                Curated For Perfection.
-              </span>
-            </h1>
-            <p className="text-xs sm:text-sm text-ink2 leading-relaxed max-w-md font-normal">
-              Discover verified boutique sellers, rare luxury timepieces, artisan leathercraft, and high-end electronics with instant nationwide delivery.
-            </p>
-          </motion.div>
-
-          {/* Action CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-wrap items-center gap-3.5 pt-1"
-          >
-            <Button
-              as={Link}
-              href="/shop"
-              variant="primary"
-              size="md"
-              className="!bg-forest hover:!bg-forestDark !text-canvas font-semibold border-0 shadow-md transition-transform hover:scale-[1.02] flex items-center gap-2"
-            >
-              <span>Explore Marketplace</span>
-              <ArrowRight size={14} />
-            </Button>
-            <Button
-              as={Link}
-              href="/admin/categories"
-              variant="outline"
-              size="md"
-              className="!border-line !text-ink hover:!border-forest hover:!text-forest bg-paper"
-            >
-              Browse Categories
-            </Button>
-          </motion.div>
-
-          {/* Trust Guarantees */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="pt-4 border-t border-line/70 grid grid-cols-2 gap-3 text-xs text-ink2"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-paper border border-line text-forest shadow-xs">
-                <ShieldCheck size={16} />
-              </div>
-              <div>
-                <p className="font-semibold text-ink text-[12px]">100% Authenticity</p>
-                <p className="text-[10px] text-ink2">Verified Sellers Only</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-lg bg-paper border border-line text-forest shadow-xs">
-                <Truck size={16} />
-              </div>
-              <div>
-                <p className="font-semibold text-ink text-[12px]">Express Shipping</p>
-                <p className="text-[10px] text-ink2">Nationwide Delivery</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* RIGHT COLUMN: SILKY 60FPS HARDWARE-ACCELERATED GPU SLIDING MARQUEE */}
-        <div className="lg:col-span-7 relative py-2 overflow-hidden group/hero">
-          
-          {/* Edge Blur Fades */}
-          <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
-          <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[#F4F0EA] to-transparent z-20 pointer-events-none" />
-
-          {/* GPU Hardware Accelerated Smooth Marquee Track */}
-          <div className="flex overflow-hidden py-2">
-            <div className="flex gap-4 shrink-0 animate-marquee-fast group-hover/hero:[animation-play-state:paused] transform-gpu will-change-transform">
-              {loopProducts.map((item, idx) => (
-                <SlidingHeroCard key={`hero-card-${item.id}-${idx}`} item={item} />
+          {/* RIGHT: Product Grid (2 rows x 3 cols) */}
+          <div className="lg:col-span-7">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+              {gridProducts.map((item, idx) => (
+                <motion.div
+                  key={`grid-${item.id}-${idx}`}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.08 * idx }}
+                >
+                  <GridProductCard item={item} />
+                </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Pause Indicator */}
-          <div className="text-center pt-2">
-            <span className="inline-block text-[10px] font-mono text-ink2/80 uppercase tracking-widest bg-paper/90 px-3 py-0.5 rounded-full border border-line shadow-xs transition-opacity opacity-75 group-hover/hero:opacity-100">
-              ✦ Hover Cards To Pause • Click To View Item
-            </span>
-          </div>
-
         </div>
 
       </div>
-
-      {/* BOTTOM MARQUEE TICKER BAR */}
-      <div className="mt-4 bg-paper/90 border-t border-line/60 py-2.5 overflow-hidden">
-        <div className="flex overflow-hidden">
-          <div className="flex gap-8 shrink-0 whitespace-nowrap animate-marquee-slow transform-gpu will-change-transform">
-            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => {
-              const IconComponent = item.icon;
-              return (
-                <div key={idx} className="flex items-center gap-2 text-xs font-mono tracking-wider text-ink2">
-                  <IconComponent size={13} className="text-forest shrink-0" />
-                  <span className="font-medium text-ink/90">{item.text}</span>
-                  <span className="text-line/80 ml-4">•</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Custom CSS Keyframe Animations for Hardware 60FPS Compositing */}
-      <style jsx global>{`
-        @keyframes marqueeSmooth {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
-        }
-        .animate-marquee-fast {
-          animation: marqueeSmooth 10s linear infinite;
-        }
-        .animate-marquee-slow {
-          animation: marqueeSmooth 20s linear infinite;
-        }
-      `}</style>
-
     </section>
   );
 }
 
-// Optimized 60FPS Card (No backdrop-blur filter on moving container for zero GPU jitter)
-function SlidingHeroCard({ item }) {
+// Compact Grid Product Card
+function GridProductCard({ item }) {
   return (
-    <div className="relative w-52 sm:w-60 shrink-0 rounded-xl bg-paper border border-line/80 p-3 shadow-sm transition-all duration-300 hover:border-forest hover:shadow-md hover:scale-[1.03] group/card">
-      <Link href={item.link || `/product/${item.slug || item.id}`} className="block space-y-2.5">
-        
-        {/* Product Image Container */}
-        <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-canvas2 border border-line/50">
+    <Link href={item.link || `/product/${item.slug || item.id}`} className="group block">
+      <div className="relative bg-paper rounded-xl border border-line/80 overflow-hidden shadow-sm hover:shadow-md hover:border-forest/40 transition-all duration-300 hover:-translate-y-1">
+        {/* Image */}
+        <div className="relative aspect-square overflow-hidden bg-canvas2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={item.image}
             alt={item.title}
             loading="eager"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-108"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
           />
 
-          {/* Category Tag */}
-          <div className="absolute top-2 left-2 bg-paper/95 border border-line px-2 py-0.5 rounded text-[9px] uppercase font-bold text-ink tracking-wider shadow-xs">
+          {/* Category */}
+          <div className="absolute top-2 left-2 bg-paper/90 backdrop-blur-sm border border-line px-2 py-0.5 rounded text-[8px] uppercase font-bold text-ink tracking-wider">
             {item.category}
           </div>
 
-          {/* Rating Tag */}
-          <div className="absolute top-2 right-2 bg-paper/95 border border-line px-2 py-0.5 rounded text-[9px] font-semibold text-brassDark flex items-center gap-1 shadow-xs">
-            <Star size={10} className="fill-brass text-brass" />
-            <span>{item.rating}</span>
+          {/* Rating */}
+          <div className="absolute top-2 right-2 bg-paper/90 backdrop-blur-sm border border-line px-1.5 py-0.5 rounded flex items-center gap-1">
+            <Star size={9} className="fill-brass text-brass" />
+            <span className="text-[9px] font-bold text-ink">{item.rating}</span>
           </div>
         </div>
 
-        {/* Details & Pricing */}
-        <div className="space-y-1 text-left px-1">
-          <h3 className="text-xs sm:text-sm font-semibold text-ink group-hover/card:text-forest transition-colors line-clamp-1">
+        {/* Info */}
+        <div className="p-3 space-y-1.5">
+          <h3 className="text-[11px] sm:text-xs font-semibold text-ink group-hover:text-forest transition-colors line-clamp-1 leading-snug">
             {item.title}
           </h3>
-          
-          <div className="flex items-center justify-between pt-0.5">
+          <div className="flex items-center justify-between">
             <div className="flex items-baseline gap-1.5">
               <span className="font-mono text-xs sm:text-sm font-bold text-forest">
                 {formatCurrency(item.price)}
               </span>
               {item.compareAtPrice && (
-                <span className="font-mono text-[10px] text-ink2/70 line-through">
+                <span className="font-mono text-[9px] text-ink2/60 line-through">
                   {formatCurrency(item.compareAtPrice)}
                 </span>
               )}
             </div>
-
-            <span className="text-[10px] font-semibold text-forest group-hover/card:text-forestDark flex items-center gap-1 transition-colors">
-              <span>View</span>
-              <ArrowRight size={11} className="transform group-hover/card:translate-x-0.5 transition-transform" />
-            </span>
+            <ArrowRight size={12} className="text-ink2 group-hover:text-forest group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
-
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
