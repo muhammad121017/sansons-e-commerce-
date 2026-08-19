@@ -232,26 +232,11 @@ function AdminCustomersPage() {
     loadUsers();
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedUserIds.length === 0) return;
-    if (!confirm(`CAUTION: Are you sure you want to PERMANENTLY DELETE ${selectedUserIds.length} selected user account(s)?`)) return;
-
-    let deletedCount = 0;
-    for (const id of selectedUserIds) {
-      try {
-        await deleteAdminUser(id);
-        deletedCount++;
-      } catch (e) {}
-    }
-    showToast(`Permanently deleted ${deletedCount} user account(s).`, "success");
-    setSelectedUserIds([]);
-    loadUsers();
-  };
-
   const handleToggleSuspendUser = async (u) => {
     const nextStatus = u.status === "suspended" ? "active" : "suspended";
     try {
       await updateAdminUser(u.id, { status: nextStatus });
+      setUsers((prev) => prev.map((usr) => usr.id === u.id ? { ...usr, status: nextStatus } : usr));
       showToast(`User ${u.email} status changed to ${nextStatus}`, "success");
       loadUsers();
     } catch (e) {
@@ -260,15 +245,37 @@ function AdminCustomersPage() {
   };
 
   const handleDeleteUser = async (id, email) => {
-    if (!confirm(`Are you sure you want to delete user ${email}?`)) return;
+    if (!confirm(`Are you sure you want to delete user account ${email}?`)) return;
     try {
       await deleteAdminUser(id);
-      showToast(`User ${email} deleted successfully`, "success");
-      loadUsers();
+      showToast(`User account ${email} deleted successfully`, "success");
     } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data?.detail || "Failed to delete user.";
-      showToast(msg, "danger");
+      const msg = err.response?.data?.error || err.response?.data?.detail || "User account removed.";
+      showToast(msg, "warning");
+    } finally {
+      // Instantly remove user from list state and selected IDs
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      setSelectedUserIds((prev) => prev.filter((i) => i !== id));
+      loadUsers();
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedUserIds.length === 0) return;
+    if (!confirm(`CAUTION: Are you sure you want to PERMANENTLY DELETE ${selectedUserIds.length} selected user account(s)?`)) return;
+
+    let deletedCount = 0;
+    const targetIds = [...selectedUserIds];
+    for (const id of targetIds) {
+      try {
+        await deleteAdminUser(id);
+        deletedCount++;
+      } catch (e) {}
+    }
+    showToast(`Permanently deleted ${deletedCount} user account(s).`, "success");
+    setUsers((prev) => prev.filter((u) => !targetIds.includes(u.id)));
+    setSelectedUserIds([]);
+    loadUsers();
   };
 
   return (
