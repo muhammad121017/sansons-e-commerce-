@@ -34,6 +34,17 @@ class Category(models.Model):
         self.deleted_at = timezone.now()
         self.save()
 
+    @property
+    def product_count(self):
+        from .models import Product
+        sub_ids = list(self.subcategories.filter(deleted_at__isnull=True, status='approved').values_list('id', flat=True))
+        category_ids = [self.id] + sub_ids
+        return Product.objects.filter(
+            category_id__in=category_ids,
+            deleted_at__isnull=True,
+            is_published=True
+        ).count()
+
     def __str__(self):
         return self.name
 

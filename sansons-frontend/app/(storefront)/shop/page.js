@@ -41,6 +41,15 @@ function ShopPageInner() {
     getCategories().then(setCategories);
   }, []);
 
+  // Sync category search parameter to filters when URL updates
+  useEffect(() => {
+    const category = searchParams.get("category");
+    setFilters((prev) => ({
+      ...prev,
+      category: category || null,
+    }));
+  }, [searchParams]);
+
   useEffect(() => {
     setLoading(true);
     fetchProducts(filters).then((res) => {
@@ -102,6 +111,7 @@ function ShopPageInner() {
               products={paginated}
               loading={loading}
               columns={view === "grid" ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2"}
+              isCategoryFilter={!!filters.category}
             />
           </motion.div>
 

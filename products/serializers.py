@@ -3,7 +3,7 @@ from django.utils.html import escape
 from .models import Product, Category, Order, OrderItem, Review, ProductImage
 
 class SubCategorySerializer(serializers.ModelSerializer):
-    count = serializers.IntegerField(read_only=True, default=0)
+    count = serializers.IntegerField(source='product_count', read_only=True)
 
     class Meta:
         model = Category
@@ -12,7 +12,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     slug = serializers.SlugField(required=False, allow_blank=True, validators=[])
     image = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    count = serializers.IntegerField(read_only=True, default=0)
+    count = serializers.IntegerField(source='product_count', read_only=True)
     visibility_status = serializers.SerializerMethodField()
     approval_status = serializers.CharField(source='status', read_only=True)
     requested_by_email = serializers.SerializerMethodField()
